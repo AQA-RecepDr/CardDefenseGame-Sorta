@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
-    [Header("Düşman Özellikleri")]
+    [Header("DÃ¼ÅŸman Ã–zellikleri")]
     public int maxHealth = 100;
     public int currentHealth = 100;
     public float baseSpeed = 2f;
@@ -16,37 +16,44 @@ public class Enemy : MonoBehaviour
     {
         White,   // Standart
         Black,   // Tank
-        Yellow,   // Hızlı/Değerli
-        Orange,  // Zigzag - YENİ!
-        Blue,    // Üçlü - YENİ!
-        Red      // Dash - YENİ!
+        Yellow,   // HÄ±zlÄ±/DeÄŸerli
+        Orange,  // Zigzag - YENÄ°!
+        Blue,    // ÃœÃ§lÃ¼ - YENÄ°!
+        Red,     // Dash - YENI!
+        Boss     // BOSS - YENI! 👾
     }
     
     [Header("Hareket Pattern")]
     public bool useZigzag = false;
-    public float zigzagAmplitude = 2f; // Zigzag genişliği
-    public float zigzagFrequency = 2f; // Zigzag hızı
+    public float zigzagAmplitude = 2f; // Zigzag geniÅŸliÄŸi
+    public float zigzagFrequency = 2f; // Zigzag hÄ±zÄ±
+    
+    [Header("Knockback")]
+    public bool isKnockbacked = false;
+    private float knockbackTimer = 0f;
+    public float knockbackDuration = 0.1f; // 0.1 saniye geriye gider
+    private Vector3 knockbackVelocity = Vector3.zero;
     
     [Header("Grup Hareketi")]
-    public int groupID = -1; // Hangi gruba ait (-1 = yalnız)
-    public Vector3 groupOffset = Vector3.zero; // Grup içi pozisyon
+    public int groupID = -1; // Hangi gruba ait (-1 = yalnÄ±z)
+    public Vector3 groupOffset = Vector3.zero; // Grup iÃ§i pozisyon
     
     public bool useDash = false;
-    public float dashSpeed = 8f; // Dash hızı
-    public float dashCooldown = 2f; // Dash aralığı
+    public float dashSpeed = 8f; // Dash hÄ±zÄ±
+    public float dashCooldown = 2f; // Dash aralÄ±ÄŸÄ±
     private float dashTimer = 0f;
     private Vector3 dashDirection = Vector3.zero;
     private bool isDashing = false;
-    private float dashDuration = 0.3f; // Dash süresi
+    private float dashDuration = 0.3f; // Dash sÃ¼resi
     private float dashTimeElapsed = 0f;
     
-    private Vector3 originalSpawnPos; // Zigzag için başlangıç pozisyonu
-    private float movementTime = 0f; // Zigzag için zaman sayacı
+    private Vector3 originalSpawnPos; // Zigzag iÃ§in baÅŸlangÄ±Ã§ pozisyonu
+    private float movementTime = 0f; // Zigzag iÃ§in zaman sayacÄ±
     
     public EnemyType enemyType;
     
     private SpriteRenderer spriteRenderer;
-    private bool isDestroyed = false;
+    public bool isDestroyed = false;
     private float currentSpeed;
     private bool hasNotifiedSpawner = false;
 
@@ -64,7 +71,30 @@ public class Enemy : MonoBehaviour
     void Update()
     {
         if (!isDestroyed)
+            // BOSS ise kendi AI hareket eder - normal hareketi atla
+            if (enemyType == EnemyType.Boss)
+            {
+                return;
+            }
         {
+            // KNOCKBACK AKTÄ°FSE SADECE KNOCKBACK HAREKETÄ°! ðŸ’¥âœ…
+            if (isKnockbacked)
+            {
+                knockbackTimer -= Time.deltaTime;
+            
+                // Knockback hareketi
+                transform.position += knockbackVelocity * Time.deltaTime;
+            
+                // Knockback bitti mi?
+                if (knockbackTimer <= 0f)
+                {
+                    isKnockbacked = false;
+                    knockbackVelocity = Vector3.zero;
+                }
+            
+                return; // Normal hareket yapma!
+            }
+            
             currentSpeed = CalculateSpeed();
         
             Vector3 playerPos = Vector3.zero;
@@ -73,13 +103,13 @@ public class Enemy : MonoBehaviour
             // NORMAL HAREKET
             Vector3 movement = direction * currentSpeed * Time.deltaTime;
         
-            // ZİGZAG HAREKETİ EKLE - YENİ! ✅
+            // ZÄ°GZAG HAREKETÄ° EKLE - YENÄ°! âœ…
             if (useZigzag)
             {
                 movement += CalculateZigzagOffset();
             }
         
-            // DASH HAREKETİ EKLE - YENİ! (Sonra ekleyeceğiz)
+            // DASH HAREKETÄ° EKLE - YENÄ°! (Sonra ekleyeceÄŸiz)
             if (useDash)
             {
                 movement += CalculateDashMovement();
@@ -88,18 +118,18 @@ public class Enemy : MonoBehaviour
             // Hareketi uygula
             transform.position += movement;
         
-            // Zaman sayacını artır (zigzag için)
+            // Zaman sayacÄ±nÄ± artÄ±r (zigzag iÃ§in)
             movementTime += Time.deltaTime;
         
-            // EKRAN SINIRI GÜVENLİĞİ - YENİ! ✅
+            // EKRAN SINIRI GÃœVENLÄ°ÄžÄ° - YENÄ°! âœ…
             if (Mathf.Abs(transform.position.x) > 15f || Mathf.Abs(transform.position.y) > 10f)
             {
-                Debug.LogWarning($"⚠️ Düşman ekrandan çıktı! {gameObject.name} Pos: {transform.position}");
+                Debug.LogWarning($"âš ï¸ DÃ¼ÅŸman ekrandan Ã§Ä±ktÄ±! {gameObject.name} Pos: {transform.position}");
             
                 EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
                 if (spawner != null)
                 {
-                    spawner.OnEnemyReachedPlayer(); // Kayıp olarak say
+                    spawner.OnEnemyReachedPlayer(); // KayÄ±p olarak say
                 }
             
                 Destroy(gameObject);
@@ -130,25 +160,25 @@ public class Enemy : MonoBehaviour
     Vector3 CalculateZigzagOffset()
     {
         // Sin wave ile zigzag hareketi
-        // movementTime arttıkça sağa-sola sallanır
+        // movementTime arttÄ±kÃ§a saÄŸa-sola sallanÄ±r
         float zigzagX = Mathf.Sin(movementTime * zigzagFrequency) * zigzagAmplitude * Time.deltaTime;
     
-        // Zone yönüne göre zigzag ekseni değişir
+        // Zone yÃ¶nÃ¼ne gÃ¶re zigzag ekseni deÄŸiÅŸir
         Vector3 zigzagOffset = Vector3.zero;
     
         switch (zoneIndex)
         {
-            case 0: // TOP (yukarıdan geliyor)
+            case 0: // TOP (yukarÄ±dan geliyor)
                 // X ekseninde zigzag
                 zigzagOffset = new Vector3(zigzagX, 0, 0);
                 break;
         
-            case 1: // RIGHT (sağdan geliyor)
+            case 1: // RIGHT (saÄŸdan geliyor)
                 // Y ekseninde zigzag
                 zigzagOffset = new Vector3(0, zigzagX, 0);
                 break;
         
-            case 2: // BOTTOM (aşağıdan geliyor)
+            case 2: // BOTTOM (aÅŸaÄŸÄ±dan geliyor)
                 // X ekseninde zigzag
                 zigzagOffset = new Vector3(zigzagX, 0, 0);
                 break;
@@ -162,10 +192,10 @@ public class Enemy : MonoBehaviour
         return zigzagOffset;
     }
 
-    // Dash hareketi (kırmızı düşman için)
+    // Dash hareketi (kÄ±rmÄ±zÄ± dÃ¼ÅŸman iÃ§in)
     Vector3 CalculateDashMovement()
 {
-    // Dash timer güncelle
+    // Dash timer gÃ¼ncelle
     dashTimer -= Time.deltaTime;
     
     // Dash durumundaysa
@@ -173,24 +203,24 @@ public class Enemy : MonoBehaviour
     {
         dashTimeElapsed += Time.deltaTime;
         
-        // Dash süresi doldu mu?
+        // Dash sÃ¼resi doldu mu?
         if (dashTimeElapsed >= dashDuration)
         {
             // Dash bitti
             isDashing = false;
             dashTimeElapsed = 0f;
-            dashTimer = dashCooldown; // Yeni cooldown başlat
+            dashTimer = dashCooldown; // Yeni cooldown baÅŸlat
             
-            Debug.Log("🔴 Dash bitti!");
+            Debug.Log("ðŸ”´ Dash bitti!");
             
             return Vector3.zero;
         }
         
-        // Dash hareketi (çok hızlı!)
+        // Dash hareketi (Ã§ok hÄ±zlÄ±!)
         return dashDirection * dashSpeed * Time.deltaTime;
     }
     
-    // Dash cooldown bitti mi? Yeni dash başlat!
+    // Dash cooldown bitti mi? Yeni dash baÅŸlat!
     if (dashTimer <= 0f && !isDashing)
     {
         StartDash();
@@ -199,24 +229,24 @@ public class Enemy : MonoBehaviour
     return Vector3.zero;
 }
 
-    // Yeni dash başlat
+    // Yeni dash baÅŸlat
     void StartDash()
 {
     isDashing = true;
     dashTimeElapsed = 0f;
     
-    // Rastgele sağ veya sol yön seç
+    // Rastgele saÄŸ veya sol yÃ¶n seÃ§
     dashDirection = GetDashDirection();
     
-    Debug.Log($"🔴 Dash başladı! Yön: {dashDirection}");
-    // TRAIL RENDERER EKLE - YENİ! ✅
+    Debug.Log($"ðŸ”´ Dash baÅŸladÄ±! YÃ¶n: {dashDirection}");
+    // TRAIL RENDERER EKLE - YENÄ°! âœ…
     AddDashTrail();
 }
     
     // Dash trail ekle
     void AddDashTrail()
     {
-        // Zaten trail var mı kontrol et
+        // Zaten trail var mÄ± kontrol et
         TrailRenderer trail = GetComponent<TrailRenderer>();
     
         if (trail == null)
@@ -224,12 +254,12 @@ public class Enemy : MonoBehaviour
             // Trail yoksa ekle
             trail = gameObject.AddComponent<TrailRenderer>();
         
-            // Trail ayarları
-            trail.time = 0.3f; // 0.3 saniye iz kalır
+            // Trail ayarlarÄ±
+            trail.time = 0.3f; // 0.3 saniye iz kalÄ±r
             trail.startWidth = 0.5f;
             trail.endWidth = 0.1f;
             trail.material = new Material(Shader.Find("Sprites/Default"));
-            trail.startColor = new Color(1f, 0.2f, 0.2f, 0.8f); // Kırmızı
+            trail.startColor = new Color(1f, 0.2f, 0.2f, 0.8f); // KÄ±rmÄ±zÄ±
             trail.endColor = new Color(1f, 0.2f, 0.2f, 0f); // Fade out
             trail.sortingOrder = spriteRenderer.sortingOrder - 1;
         }
@@ -253,33 +283,33 @@ public class Enemy : MonoBehaviour
         }
     }
     
-    // Dash yönünü belirle (zone'a göre sağ/sol)
+    // Dash yÃ¶nÃ¼nÃ¼ belirle (zone'a gÃ¶re saÄŸ/sol)
     Vector3 GetDashDirection()
 {
-    // Rastgele sağ veya sol
+    // Rastgele saÄŸ veya sol
     float randomDirection = Random.value > 0.5f ? 1f : -1f;
     
     Vector3 direction = Vector3.zero;
     
     switch (zoneIndex)
     {
-        case 0: // TOP (yukarıdan geliyor)
-            // X ekseninde sağ/sol dash
+        case 0: // TOP (yukarÄ±dan geliyor)
+            // X ekseninde saÄŸ/sol dash
             direction = new Vector3(randomDirection, 0, 0);
             break;
         
-        case 1: // RIGHT (sağdan geliyor)
-            // Y ekseninde yukarı/aşağı dash
+        case 1: // RIGHT (saÄŸdan geliyor)
+            // Y ekseninde yukarÄ±/aÅŸaÄŸÄ± dash
             direction = new Vector3(0, randomDirection, 0);
             break;
         
-        case 2: // BOTTOM (aşağıdan geliyor)
-            // X ekseninde sağ/sol dash
+        case 2: // BOTTOM (aÅŸaÄŸÄ±dan geliyor)
+            // X ekseninde saÄŸ/sol dash
             direction = new Vector3(randomDirection, 0, 0);
             break;
         
         case 3: // LEFT (soldan geliyor)
-            // Y ekseninde yukarı/aşağı dash
+            // Y ekseninde yukarÄ±/aÅŸaÄŸÄ± dash
             direction = new Vector3(0, randomDirection, 0);
             break;
     }
@@ -287,7 +317,7 @@ public class Enemy : MonoBehaviour
     return direction;
 }
 
-    // Düşman tipine göre özellikleri ayarla
+    // DÃ¼ÅŸman tipine gÃ¶re Ã¶zellikleri ayarla
     void SetupEnemyType()
     {
         switch (enemyType)
@@ -312,33 +342,33 @@ public class Enemy : MonoBehaviour
                 currentHealth = 50;
                 baseSpeed = 4f;
                 damageToPlayer = 1;
-                transform.localScale = Vector3.one * 0.8f; // Küçük
+                transform.localScale = Vector3.one * 0.8f; // KÃ¼Ã§Ã¼k
                 break;
             
             case EnemyType.Orange:
-                // ZIGZAG - YENİ! ✅
+                // ZIGZAG - YENÄ°! âœ…
                 maxHealth = 150;
                 currentHealth = 150;
                 baseSpeed = 2f; // 1x
                 damageToPlayer = 1;
                 useZigzag = true;
-                zigzagAmplitude = 3.5f; // Zigzag genişliği (ayarlanabilir)
-                zigzagFrequency = 4f; // Zigzag hızı (ayarlanabilir)
+                zigzagAmplitude = 3.5f; // Zigzag geniÅŸliÄŸi (ayarlanabilir)
+                zigzagFrequency = 4f; // Zigzag hÄ±zÄ± (ayarlanabilir)
                 transform.localScale = Vector3.one * 0.9f;
                 break;
         
             case EnemyType.Blue:
-                // ÜÇLÜ GRUP - YENİ! ✅
+                // ÃœÃ‡LÃœ GRUP - YENÄ°! âœ…
                 maxHealth = 50;
                 currentHealth = 50;
                 baseSpeed = 3f; // 1.5x
                 damageToPlayer = 1;
-                transform.localScale = Vector3.one * 0.7f; // Küçük
-                // Not: Üçlü spawn EnemySpawner'da yapılacak
+                transform.localScale = Vector3.one * 0.7f; // KÃ¼Ã§Ã¼k
+                // Not: ÃœÃ§lÃ¼ spawn EnemySpawner'da yapÄ±lacak
                 break;
         
             case EnemyType.Red:
-                // DASH - YENİ! ✅
+                // DASH - YENÄ°! âœ…
                 maxHealth = 100;
                 currentHealth = 100;
                 baseSpeed = 2f; // 1x normal
@@ -346,55 +376,73 @@ public class Enemy : MonoBehaviour
                 useDash = true;
                 
                 // DASH AYARLARI
-                dashSpeed = 8f;         // Çok hızlı dash!
+                dashSpeed = 8f;         // Ã‡ok hÄ±zlÄ± dash!
                 dashCooldown = 0.8f;      // 2 saniyede bir dash
-                dashDuration = 0.3f;    // 0.3 saniye dash süresi
-                dashTimer = 0.5f;         // İlk dash 1 saniye sonra
+                dashDuration = 0.3f;    // 0.3 saniye dash sÃ¼resi
+                dashTimer = 0.5f;         // Ä°lk dash 1 saniye sonra
                 
+                break;
+            
+            case EnemyType.Boss:
+                // BOSS - YENİ! 👾
+                maxHealth = 6000; // 6000 HP!
+                currentHealth = 6000;
+                baseSpeed = 0f; // Boss kendi hareketini kontrol eder
+                damageToPlayer = 3; // Çok tehlikeli!
+                transform.localScale = Vector3.one * 2.5f; // Büyük!
+                
+                // Boss Controller ekle
+                BossController bossAI = gameObject.AddComponent<BossController>();
+                bossAI.enemyPrefab = FindObjectOfType<EnemySpawner>().enemyPrefab;
+                
+                Debug.Log("👾 BOSS INITIALIZED!");
                 break;
         }
     }
 
-    // Görsel güncelle
-    void UpdateVisual()
+    // GÃ¶rsel gÃ¼ncelle
+    public void UpdateVisual()
     {
         switch (enemyType)
         {
             case EnemyType.White:
-                spriteRenderer.color = new Color(0.9f, 0.9f, 0.9f); // Açık gri
+                spriteRenderer.color = new Color(0.9f, 0.9f, 0.9f); // AÃ§Ä±k gri
                 break;
             case EnemyType.Black:
                 spriteRenderer.color = new Color(0.2f, 0.2f, 0.2f); // Koyu siyah
                 break;
             case EnemyType.Yellow:
-                spriteRenderer.color = new Color(1f, 0.95f, 0.2f); // Parlak sarı
+                spriteRenderer.color = new Color(1f, 0.95f, 0.2f); // Parlak sarÄ±
                 break;
             case EnemyType.Orange:
-                spriteRenderer.color = new Color(1f, 0.6f, 0f); // Turuncu - YENİ! ✅
+                spriteRenderer.color = new Color(1f, 0.6f, 0f); // Turuncu - YENÄ°! âœ…
                 break;
             case EnemyType.Blue:
-                spriteRenderer.color = new Color(0.2f, 0.5f, 1f); // Mavi - YENİ! ✅
+                spriteRenderer.color = new Color(0.2f, 0.5f, 1f); // Mavi - YENÄ°! âœ…
                 break;
             case EnemyType.Red:
-                spriteRenderer.color = new Color(1f, 0.2f, 0.2f); // Kırmızı - YENİ! ✅
+                spriteRenderer.color = new Color(1f, 0.2f, 0.2f); // KÄ±rmÄ±zÄ± - YENÄ°! âœ…
+                break;
+            case EnemyType.Boss:
+                spriteRenderer.color = new Color(0.6f, 0.2f, 0.8f); // Koyu mor - BOSS! 👾
                 break;
         }
     }
 
-    // Hızı hesapla (buff kontrolü ile)
+    // HÄ±zÄ± hesapla (buff kontrolÃ¼ ile)
     float CalculateSpeed()
     {
         Zone[] allZones = FindObjectsOfType<Zone>();
     
         foreach (Zone zone in allZones)
         {
-            // Aynı zone'da mı?
+            // AynÄ± zone'da mÄ±?
             if (zone.zoneIndex == zoneIndex)
             {
-                // Slow buff varsa yavaşlat
+                // Slow buff varsa yavaÅŸlat
                 if (zone.hasSlowBuff)
                 {
-                    Debug.Log($"❄️ Düşman yavaşlatıldı! Zone: {zoneIndex}, Hız: {baseSpeed * zone.slowMultiplier}");
+                    Debug.Log($"â„ï¸ DÃ¼ÅŸman yavaÅŸlatÄ±ldÄ±! Zone: {zoneIndex}, HÄ±z: {baseSpeed * zone.slowMultiplier}");
                     return baseSpeed * zone.slowMultiplier;
                 }
             }
@@ -414,14 +462,14 @@ public class Enemy : MonoBehaviour
     
         if (isTurret)
         {
-            Debug.Log($"🔴 TURRET DAMAGE: {actualDamage} to {enemyType}");
+            Debug.Log($"ðŸ”´ TURRET DAMAGE: {actualDamage} to {enemyType}");
         }
         else
         {
-            Debug.Log($"🔵 LANE DAMAGE: {actualDamage} to {enemyType}");
+            Debug.Log($"ðŸ”µ LANE DAMAGE: {actualDamage} to {enemyType}");
         }
     
-        // Damage text göster
+        // Damage text gÃ¶ster
         if (DamageTextManager.Instance != null)
         {
             Vector3 textPosition = transform.position + Vector3.up * 0.5f;
@@ -431,22 +479,40 @@ public class Enemy : MonoBehaviour
 
         StartCoroutine(DamageFlash());
         
-        // SCREEN SHAKE EKLE - YENİ!
+        // SCREEN SHAKE EKLE - YENÄ°!
         if (CameraShake.Instance != null)
         {
-            CameraShake.Instance.Shake(0.08f, 0.03f); // Hafif sarsıntı
+            CameraShake.Instance.Shake(0.08f, 0.03f); // Hafif sarsÄ±ntÄ±
         }
-        // HIT SESİ - YENİ!
+        // HIT SESÄ° - YENÄ°!
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlayHit();
         }
-        // HIT PARTICLE - YENİ!
+        // HIT PARTICLE - YENÄ°!
         if (HitEffectManager.Instance != null)
         {
-            // Düşman tipine göre renk
+            // DÃ¼ÅŸman tipine gÃ¶re renk
             Color hitColor = isTurret ? Color.red : Color.cyan;
             HitEffectManager.Instance.ShowHitEffect(transform.position, hitColor);
+        }
+        
+        // BOSS HP GÖSTERGESİ - Boyut küçülmesi
+        if (enemyType == EnemyType.Boss)
+        {
+            float healthPercent = (float)currentHealth / (float)maxHealth;
+    
+            // Boyut küçülmesi
+            float targetScale = 1.5f + (healthPercent * 1.0f);
+            transform.localScale = Vector3.one * targetScale;
+    
+            // Renk solması
+            Color healthColor = Color.Lerp(
+                new Color(0.3f, 0.1f, 0.3f), // Koyu mor
+                new Color(0.8f, 0.3f, 1.0f), // Parlak mor
+                healthPercent
+            );
+            spriteRenderer.color = healthColor;
         }
 
         if (currentHealth <= 0)
@@ -458,12 +524,15 @@ public class Enemy : MonoBehaviour
     public void TakePlayerDamage(int damage)
     {
         
-        // DEBUFF KONTROL - Player hasarı da debuff'tan etkilensin!
+        // DEBUFF KONTROL - Player hasarÄ± da debuff'tan etkilensin!
         int actualDamage = damage;
     
         currentHealth -= actualDamage;
         Debug.Log($"PLAYER DAMAGE: {actualDamage} to {enemyType} at {transform.position}");
-
+        
+        // KNOCKBACK UYGULA - YENÄ°! ðŸ’¥âœ…
+        ApplyKnockback();
+        
         // Player damage - SARI
         if (DamageTextManager.Instance != null)
         {
@@ -473,7 +542,7 @@ public class Enemy : MonoBehaviour
 
         StartCoroutine(DamageFlash());
         
-        // HIT SESİ - YENİ!
+        // HIT SESÄ° - YENÄ°!
         if (SoundManager.Instance != null)
         {
             SoundManager.Instance.PlayHit();
@@ -481,7 +550,7 @@ public class Enemy : MonoBehaviour
         
         if (CameraShake.Instance != null)
         {
-            CameraShake.Instance.Shake(0.08f, 0.03f); // Hafif sarsıntı
+            CameraShake.Instance.Shake(0.08f, 0.03f); // Hafif sarsÄ±ntÄ±
         }
         
         if (HitEffectManager.Instance != null)
@@ -494,7 +563,45 @@ public class Enemy : MonoBehaviour
             DestroyEnemy();
         }
     }
-
+    
+    void ApplyKnockback()
+    {
+        // Merkezden dÄ±ÅŸarÄ± doÄŸru (vuruÅŸ yÃ¶nÃ¼)
+        Vector3 knockbackDirection = (transform.position - Vector3.zero).normalized;
+    
+        // Knockback gÃ¼cÃ¼ (dÃ¼ÅŸman tipine gÃ¶re)
+        float knockbackForce = 3f; // Base knockback
+    
+        switch (enemyType)
+        {
+            case EnemyType.White:
+                knockbackForce = 3f; // Normal
+                break;
+            case EnemyType.Black:
+                knockbackForce = 1.5f; // Tank - daha az geriye gider
+                break;
+            case EnemyType.Yellow:
+                knockbackForce = 4f; // Hafif - daha Ã§ok geriye gider
+                break;
+            case EnemyType.Orange:
+                knockbackForce = 3.5f; // ðŸŸ  Normal+
+                break;
+            case EnemyType.Blue:
+                knockbackForce = 3.5f; // ðŸ”µ Normal+
+                break;
+            case EnemyType.Red:
+                knockbackForce = 2.5f; // ðŸ”´ Dash - Biraz zor
+                break;
+        }
+    
+        // Knockback aktif et
+        isKnockbacked = true;
+        knockbackTimer = knockbackDuration;
+        knockbackVelocity = knockbackDirection * knockbackForce;
+    
+        Debug.Log($"ðŸ’¥ Knockback! Direction: {knockbackDirection}, Force: {knockbackForce}");
+    }
+    
     System.Collections.IEnumerator DamageFlash()
     {
         Color original = spriteRenderer.color;
@@ -514,8 +621,27 @@ public class Enemy : MonoBehaviour
             int coinAmount = CoinManager.Instance.coinsPerKill;
             CoinManager.Instance.AddCoins(coinAmount);
         }
+        // BOSS öldü mü? Özel ödül ve KAZANMA!
+        if (enemyType == EnemyType.Boss)
+        {
+            Debug.Log("👾 === BOSS ÖLDÜRÜLDÜ! ===");
+            
+            // Bonus coin!
+            if (CoinManager.Instance != null)
+            {
+                CoinManager.Instance.AddCoins(800); // Ekstra 800 coin!
+                Debug.Log("💰 Boss bonus: +800 coin!");
+            }
+            
+            // OYUNU KAZAN!
+            if (GameManager.Instance != null)
+            {
+                // 2 saniye bekle, sonra kazanma ekranı
+                StartCoroutine(WinAfterDelay(2f));
+            }
+        }
         
-        // Heal buff kontrolü
+        // Heal buff kontrolÃ¼
         CheckHealBuff();
     
         // Efektler
@@ -545,16 +671,21 @@ public class Enemy : MonoBehaviour
                 case EnemyType.Yellow:
                     explosionColor = Color.yellow;
                     break;
+                    //HitEffectManager.Instance.ShowHitEffect(transform.position, explosionColor);
+                case EnemyType.Boss:
+                    explosionColor = new Color(0.8f, 0.2f, 1f); // Parlak mor
+                    CameraShake.Instance.Shake(0.5f, 0.2f); // Güçlü sarsıntı!
+                    break;
             }
         
-            HitEffectManager.Instance.ShowHitEffect(transform.position, explosionColor);
+            
         }
     
-        // ÖNCE YOK ET! ✅
+        // Ã–NCE YOK ET! âœ…
         Destroy(gameObject);
     
-        // SONRA HABER VER! ✅
-        // (GameObject yok olsa da kod çalışır - bir frame içinde)
+        // SONRA HABER VER! âœ…
+        // (GameObject yok olsa da kod Ã§alÄ±ÅŸÄ±r - bir frame iÃ§inde)
         if (!hasNotifiedSpawner)
         {
             hasNotifiedSpawner = true;
@@ -562,30 +693,40 @@ public class Enemy : MonoBehaviour
             EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
             if (spawner != null)
             {
-                Debug.Log($"💀 Spawner'a bildirim: {gameObject.name}");
-                spawner.OnEnemyKilled(); // Artık FindObjectsOfType bu düşmanı bulamaz ✅
+                Debug.Log($"ðŸ’€ Spawner'a bildirim: {gameObject.name}");
+                spawner.OnEnemyKilled(); // ArtÄ±k FindObjectsOfType bu dÃ¼ÅŸmanÄ± bulamaz âœ…
             }
         }
     }
    
-    // Yeşil buff varsa can ver
+    // YeÅŸil buff varsa can ver
     void CheckHealBuff()
     {
         Zone[] allZones = FindObjectsOfType<Zone>();
     
         foreach (Zone zone in allZones)
         {
-            // Aynı zone'da mı ve heal buff var mı?
+            // AynÄ± zone'da mÄ± ve heal buff var mÄ±?
             if (zone.zoneIndex == zoneIndex && zone.hasHealBuff)
             {
                 Player player = FindObjectOfType<Player>();
                 if (player != null)
                 {
                     player.Heal(1);
-                    Debug.Log($"💚 Yeşil buff! +1 can (Zone {zoneIndex})");
+                    Debug.Log($"ðŸ’š YeÅŸil buff! +1 can (Zone {zoneIndex})");
                 }
                 break;
             }
+        }
+    }
+    // Boss öldükten sonra kazanma
+    IEnumerator WinAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.WinGame();
         }
     }
 }

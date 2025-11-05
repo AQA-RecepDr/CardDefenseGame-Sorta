@@ -51,10 +51,10 @@ public class PermanentUpgradeUI : MonoBehaviour
     void Start()
     {
         // Panel başlangıçta kapalı
-        if (upgradePanel != null)
-        {
-            upgradePanel.SetActive(false);
-        }
+        //if (upgradePanel != null)
+        //{
+        //    upgradePanel.SetActive(false);
+        //}
         
         // Buton listener'ları ekle
         SetupButtons();
@@ -94,14 +94,14 @@ public class PermanentUpgradeUI : MonoBehaviour
         if (PermanentUpgradeManager.Instance != null)
         {
             // Onay popup'ı (opsiyonel)
-            Debug.Log("⚠️ RESET! Tüm upgrade'ler silinecek!");
+            Debug.Log(" RESET! Tüm upgrade'ler silinecek!");
         
             PermanentUpgradeManager.Instance.ResetAllUpgrades();
         
             // UI'yi güncelle
             UpdateUI();
         
-            Debug.Log("✅ Reset tamamlandı! Oyunu restart et.");
+            Debug.Log(" Reset tamamlandı! Oyunu restart et.");
         }
     }
     
@@ -162,7 +162,7 @@ public class PermanentUpgradeUI : MonoBehaviour
         int cost = upgrade.GetUpgradeCost();
         
         string levelText = upgrade.IsMaxLevel() ? "MAX" : $"{currentLevel}/{maxLevel}";
-        string costText = upgrade.IsMaxLevel() ? "" : $"\n[{cost}💰]";
+        string costText = upgrade.IsMaxLevel() ? "" : $"\n[{cost}]";
         
         text.text = $"{upgrade.upgradeName}\n" +
                     $"Level: {levelText}\n" +

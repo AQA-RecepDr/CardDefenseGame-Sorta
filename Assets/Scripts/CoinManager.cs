@@ -29,6 +29,11 @@ public class CoinManager : MonoBehaviour
     {
         // Toplam coin'i yükle
         LoadCoins();
+        
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.UpdateCoins(currentSessionCoins);
+        }
     }
     
     // Coin kazan (düşman öldürünce)
@@ -36,7 +41,7 @@ public class CoinManager : MonoBehaviour
     {
         currentSessionCoins += amount;
         
-        Debug.Log($"💰 +{amount} coin! Toplam bu oyunda: {currentSessionCoins}");
+        Debug.Log($"+{amount} coin! Toplam bu oyunda: {currentSessionCoins}");
         
         // UI güncelle (varsa)
         UpdateCoinUI();
@@ -50,7 +55,7 @@ public class CoinManager : MonoBehaviour
         PlayerPrefs.SetInt("TotalCoins", totalCoins);
         PlayerPrefs.Save();
         
-        Debug.Log($"💾 Coin kaydedildi! Bu oyun: {currentSessionCoins}, Toplam: {totalCoins}");
+        Debug.Log($" Coin kaydedildi! Bu oyun: {currentSessionCoins}, Toplam: {totalCoins}");
     }
     
     // Coin'leri yükle
@@ -74,7 +79,7 @@ public class CoinManager : MonoBehaviour
             return true;
         }
         
-        Debug.LogWarning($"❌ Yeterli coin yok! Gerekli: {amount}, Var: {totalCoins}");
+        Debug.LogWarning($" Yeterli coin yok! Gerekli: {amount}, Var: {totalCoins}");
         return false;
     }
     
@@ -84,7 +89,7 @@ public class CoinManager : MonoBehaviour
         if (UIManager.Instance != null)
         {
             // UIManager'a coin text ekleyeceğiz
-            // UIManager.Instance.UpdateCoins(currentSessionCoins);
+            UIManager.Instance.UpdateCoins(currentSessionCoins);
         }
     }
     

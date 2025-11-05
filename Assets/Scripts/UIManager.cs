@@ -13,11 +13,11 @@ public class UIManager : MonoBehaviour
     public TextMeshProUGUI loseCoinText; 
     
     public static UIManager Instance; // Singleton (her yerden erişilebilir)
+    private Coroutine coinBounceCoroutine = null;
     
     [Header("UI Referansları")]
     public TextMeshProUGUI playerHealthText;
-    //public TextMeshProUGUI chargeText;
-    //public TextMeshProUGUI dragonHealthText;
+    public TextMeshProUGUI coinText; // YENİ!
     
     [Header("Countdown")]
     public TextMeshProUGUI countdownText;
@@ -76,7 +76,7 @@ public class UIManager : MonoBehaviour
         yield return new WaitForSeconds(2f);
     
         waveAnnouncementText.gameObject.SetActive(false);
-        Debug.Log($"✅ Wave announcement kapandı!");
+        Debug.Log($" Wave announcement kapandı!");
     }
     
     // Wave numarasını güncelle
@@ -151,5 +151,49 @@ public class UIManager : MonoBehaviour
         {
             countdownText.gameObject.SetActive(false);
         }
+    }
+    
+    // Coin sayacını güncelle - YENİ! 💰✅
+    public void UpdateCoins(int currentCoins)
+    {
+        if (coinText != null)
+        {
+            coinText.text = $"Coin: {currentCoins}";
+        
+            // BONUS - Coin kazanınca büyüyüp küçülme animasyonu!
+            if (coinBounceCoroutine != null)
+            {
+                StopCoroutine(coinBounceCoroutine);
+            }
+            coinBounceCoroutine = StartCoroutine(CoinBounce());
+        }
+    }
+    
+    // Coin kazanma animasyonu
+    IEnumerator CoinBounce()
+    {
+        if (coinText == null) yield break;
+    
+        RectTransform rect = coinText.GetComponent<RectTransform>();
+        if (rect == null) yield break;
+        
+        // ÖNEMLİ: Her zaman Vector3.one'dan başla!
+        rect.localScale = Vector3.one;
+    
+        // Büyü-Küçült animasyonu
+        float duration = 0.15f; // Biraz daha hızlı
+        float elapsed = 0f;
+    
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float scale = 1f + (Mathf.Sin(elapsed / duration * Mathf.PI) * 0.2f); // 0.3f -> 0.2f (daha az büyüme)
+            rect.localScale = Vector3.one * scale;
+            yield return null;
+        }
+    
+        // Kesinlikle 1'e dön
+        rect.localScale = Vector3.one;
+        coinBounceCoroutine = null;
     }
 }
