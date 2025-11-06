@@ -33,6 +33,15 @@ public class SoundManager : MonoBehaviour
     public AudioClip buttonClickSound;
     public AudioClip levelUpSound;
     
+    [Header("Boss Sounds - YENİ! 👾")]
+    public AudioClip bossMusicLoop; // Boss müziği (loop)
+    public AudioClip normalMusicLoop; // Normal oyun müziği (loop)
+    public AudioClip bossSpawnSound; // Boss geldiğinde
+    public AudioClip bossMinionSpawnSound; // Minion spawn
+    public AudioClip bossTeleportSound; // Boss yer değiştirince
+    public AudioClip bossHurtSound; // Boss hasar alınca (büyük)
+    public AudioClip bossDeathSound; // Boss öldüğünde (epic!)
+    
     [Header("Volume Settings")]
     [Range(0f, 1f)]
     public float sfxVolume = 0.7f;
@@ -83,6 +92,88 @@ public class SoundManager : MonoBehaviour
             sfxSource.PlayOneShot(clip, volumeScale);
         }
     }
+    
+    // BOSS MÜZİK SİSTEMİ - YENİ! 👾
+
+// Normal müziği başlat
+public void PlayNormalMusic()
+{
+    if (musicSource != null && normalMusicLoop != null)
+    {
+        // Eğer boss müziği çalıyorsa fade out yap
+        if (musicSource.isPlaying && musicSource.clip == bossMusicLoop)
+        {
+            StartCoroutine(CrossfadeMusic(normalMusicLoop, 1.5f));
+        }
+        else
+        {
+            musicSource.clip = normalMusicLoop;
+            musicSource.loop = true;
+            musicSource.Play();
+        }
+        
+        Debug.Log("🎵 Normal müzik başladı");
+    }
+}
+
+// Boss müziğini başlat
+public void PlayBossMusic()
+{
+    if (musicSource != null && bossMusicLoop != null)
+    {
+        // Dramatic geçiş ile boss müziğine geç!
+        StartCoroutine(CrossfadeMusic(bossMusicLoop, 1.0f));
+        
+        Debug.Log("👾 BOSS MÜZİĞİ BAŞLADI!");
+    }
+}
+
+// Müzik geçişi (crossfade)
+IEnumerator CrossfadeMusic(AudioClip newClip, float duration)
+{
+    float startVolume = musicSource.volume;
+    
+    // Fade out (eski müzik)
+    float elapsed = 0f;
+    while (elapsed < duration / 2f)
+    {
+        elapsed += Time.deltaTime;
+        musicSource.volume = Mathf.Lerp(startVolume, 0f, elapsed / (duration / 2f));
+        yield return null;
+    }
+    
+    // Müziği değiştir
+    musicSource.clip = newClip;
+    musicSource.loop = true;
+    musicSource.Play();
+    
+    // Fade in (yeni müzik)
+    elapsed = 0f;
+    while (elapsed < duration / 2f)
+    {
+        elapsed += Time.deltaTime;
+        musicSource.volume = Mathf.Lerp(0f, musicVolume, elapsed / (duration / 2f));
+        yield return null;
+    }
+    
+    musicSource.volume = musicVolume;
+}
+
+// Müziği durdur
+public void StopMusic()
+{
+    if (musicSource != null)
+    {
+        musicSource.Stop();
+    }
+}
+
+    // BOSS SESLER - Hızlı erişim
+    public void PlayBossSpawn() => PlaySound(bossSpawnSound, 1.0f);
+    public void PlayBossMinionSpawn() => PlaySound(bossMinionSpawnSound, 0.5f);
+    public void PlayBossTeleport() => PlaySound(bossTeleportSound, 0.8f);
+    public void PlayBossHurt() => PlaySound(bossHurtSound, 0.9f);
+    public void PlayBossDeath() => PlaySound(bossDeathSound, 1.2f); // En yüksek!
     
     // Hızlı erişim fonksiyonları
     public void PlayShoot() => PlaySound(shootSound);

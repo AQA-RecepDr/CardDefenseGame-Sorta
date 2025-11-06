@@ -57,6 +57,13 @@ public class BossController : MonoBehaviour
         cooldownTimer = 2f; // 2 saniye bekle başlamadan önce
         
         Debug.Log("👾 BOSS SPAWN! İlk saldırı için hazırlanıyor...");
+        
+        // BOSS MÜZİĞİ BAŞLAT! 🎵
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayBossMusic();
+            SoundManager.Instance.PlayBossSpawn();
+        }
     }
 
     void Update()
@@ -208,12 +215,41 @@ public class BossController : MonoBehaviour
         // Hedef pozisyon (merkeze yakın ama tam değil)
         Vector3 centerPos = Vector3.zero;
         Vector3 direction = (centerPos - spawnPosition).normalized;
-        targetPosition = centerPos - (direction * stopDistance);
+        //targetPosition = centerPos - (direction * stopDistance);
+        
+        // Zone'a göre farklı stopDistance! (Ekran şekline göre)
+        float zoneStopDistance = stopDistance;
+
+        switch (currentZone)
+        {
+            case 0: // TOP (üst)
+                zoneStopDistance = 6.5f; // Daha yakın (ekran dar)
+                break;
+            case 1: // RIGHT (sağ)
+                zoneStopDistance = 10f; // Daha uzak (ekran geniş)
+                break;
+            case 2: // BOTTOM (alt)
+                zoneStopDistance = 6.5f; // Daha yakın (ekran dar)
+                break;
+            case 3: // LEFT (sol)
+                zoneStopDistance = 10f; // Daha uzak (ekran geniş)
+                break;
+        }
+
+        targetPosition = centerPos - (direction * zoneStopDistance);
+
+        Debug.Log($"👾 Zone {currentZone} - Stop mesafesi: {zoneStopDistance}");
         
         // Saldırıya başla!
         currentState = BossState.Approaching;
         
         Debug.Log($"👾 BOSS YENİ SALDIRI! Zone: {currentZone} → Hedef: {targetPosition}");
+        
+        // Teleport sesi!
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayBossTeleport();
+        }
         
         // Görsel: Parlak glow
         if (enemyComponent != null)
@@ -274,6 +310,12 @@ public class BossController : MonoBehaviour
             minion.gameObject.name = $"BossMinion_{spawnedMinionCount}";
             
             Debug.Log($"🔵 Boss minion spawn! Pos: {spawnPos}, Zone: {currentZone}");
+        }
+        
+        // Minion spawn sesi
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayBossMinionSpawn();
         }
         
         // Spawn efekti

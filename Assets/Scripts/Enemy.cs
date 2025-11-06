@@ -405,6 +405,7 @@ public class Enemy : MonoBehaviour
     {
         switch (enemyType)
         {
+            /*
             case EnemyType.White:
                 spriteRenderer.color = new Color(0.9f, 0.9f, 0.9f); // AÃ§Ä±k gri
                 break;
@@ -425,6 +426,28 @@ public class Enemy : MonoBehaviour
                 break;
             case EnemyType.Boss:
                 spriteRenderer.color = new Color(0.6f, 0.2f, 0.8f); // Koyu mor - BOSS! 👾
+                break;
+            */
+            case EnemyType.White:
+                spriteRenderer.color = new Color(1f, 1f, 1f); // TAM BEYAZ (glow için)
+                break;
+            case EnemyType.Black:
+                spriteRenderer.color = new Color(0.5f, 0f, 1f); // MOR NEON
+                break;
+            case EnemyType.Yellow:
+                spriteRenderer.color = new Color(1f, 1f, 0f); // SARI NEON
+                break;
+            case EnemyType.Orange:
+                spriteRenderer.color = new Color(1f, 0.5f, 0f); // TURUNCU NEON
+                break;
+            case EnemyType.Blue:
+                spriteRenderer.color = new Color(0f, 0.5f, 1f); // MAVİ NEON
+                break;
+            case EnemyType.Red:
+                spriteRenderer.color = new Color(1f, 0f, 0.3f); // KIRMIZI NEON
+                break;
+            case EnemyType.Boss:
+                spriteRenderer.color = new Color(1f, 0f, 1f); // PEMBE NEON
                 break;
         }
     }
@@ -459,6 +482,12 @@ public class Enemy : MonoBehaviour
         //actualDamage = ApplyDebuffMultiplier(actualDamage);
     
         currentHealth -= actualDamage;
+        
+        // BOSS HP GÖSTERGESİ - YENİ! 👾
+        if (enemyType == EnemyType.Boss && currentHealth > 0)
+        {
+            UpdateBossVisual();
+        }
     
         if (isTurret)
         {
@@ -497,24 +526,6 @@ public class Enemy : MonoBehaviour
             HitEffectManager.Instance.ShowHitEffect(transform.position, hitColor);
         }
         
-        // BOSS HP GÖSTERGESİ - Boyut küçülmesi
-        if (enemyType == EnemyType.Boss)
-        {
-            float healthPercent = (float)currentHealth / (float)maxHealth;
-    
-            // Boyut küçülmesi
-            float targetScale = 1.5f + (healthPercent * 1.0f);
-            transform.localScale = Vector3.one * targetScale;
-    
-            // Renk solması
-            Color healthColor = Color.Lerp(
-                new Color(0.3f, 0.1f, 0.3f), // Koyu mor
-                new Color(0.8f, 0.3f, 1.0f), // Parlak mor
-                healthPercent
-            );
-            spriteRenderer.color = healthColor;
-        }
-
         if (currentHealth <= 0)
         {
             DestroyEnemy();
@@ -528,6 +539,13 @@ public class Enemy : MonoBehaviour
         int actualDamage = damage;
     
         currentHealth -= actualDamage;
+        
+        // BOSS HP GÖSTERGESİ - YENİ! 👾
+        if (enemyType == EnemyType.Boss && currentHealth > 0)
+        {
+            UpdateBossVisual();
+        }
+        
         Debug.Log($"PLAYER DAMAGE: {actualDamage} to {enemyType} at {transform.position}");
         
         // KNOCKBACK UYGULA - YENÄ°! ðŸ’¥âœ…
@@ -626,6 +644,19 @@ public class Enemy : MonoBehaviour
         {
             Debug.Log("👾 === BOSS ÖLDÜRÜLDÜ! ===");
             
+            // BOSS ÖLÜM SESİ! 💀
+            if (SoundManager.Instance != null)
+            {
+                SoundManager.Instance.PlayBossDeath();
+                SoundManager.Instance.StopMusic(); // Müziği durdur
+            }
+
+            // Büyük screen shake!
+            if (CameraShake.Instance != null)
+            {
+                CameraShake.Instance.Shake(1.0f, 0.3f); // ÇOK BÜYÜK!
+            }
+            
             // Bonus coin!
             if (CoinManager.Instance != null)
             {
@@ -681,10 +712,10 @@ public class Enemy : MonoBehaviour
             
         }
     
-        // Ã–NCE YOK ET! âœ…
+        // ÖNCE YOK ET! 
         Destroy(gameObject);
     
-        // SONRA HABER VER! âœ…
+        // SONRA HABER VER!
         // (GameObject yok olsa da kod Ã§alÄ±ÅŸÄ±r - bir frame iÃ§inde)
         if (!hasNotifiedSpawner)
         {
@@ -719,6 +750,33 @@ public class Enemy : MonoBehaviour
             }
         }
     }
+    
+    // Boss görsel güncellemesi
+    void UpdateBossVisual()
+    {
+        // BOSS HASAR SESİ - YENİ! 👾
+        if (SoundManager.Instance != null)
+        {
+            SoundManager.Instance.PlayBossHurt();
+        }
+        
+        float healthPercent = (float)currentHealth / (float)maxHealth;
+    
+        // Boyut küçülmesi (2.5x -> 1.5x)
+        float targetScale = 1.5f + (healthPercent * 1.0f);
+        transform.localScale = Vector3.one * targetScale;
+    
+        // Renk solması
+        Color healthColor = Color.Lerp(
+            new Color(1f, 1f, 1f), // Koyu mor (düşük HP)
+            new Color(0.8f, 0.3f, 1.0f), // Parlak mor (full HP)
+            healthPercent
+        );
+        spriteRenderer.color = healthColor;
+    
+        Debug.Log($"👾 Boss HP: {healthPercent:P0} - Scale: {targetScale:F2}");
+    }
+    
     // Boss öldükten sonra kazanma
     IEnumerator WinAfterDelay(float delay)
     {
