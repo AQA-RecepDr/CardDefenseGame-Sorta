@@ -16,16 +16,30 @@ public class PrimaryProjectile : MonoBehaviour
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
-    
-        // Pierce upgrade'i varsa farklı renk
-        if (WeaponUpgradeManager.Instance != null && 
-            WeaponUpgradeManager.Instance.hasPierceShot)
+
+        AddNeonTrail();
+
+        // PROJEKTİL GLOW - YENİ! ✨
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
         {
-            spriteRenderer.color = new Color(0f, 1f, 1f); // Parlak cyan (pierce göstergesi)
-        }
-        else
-        {
-            spriteRenderer.color = Color.cyan; // Normal cyan
+            // Rengi parlat (bloom için)
+            Color glowColor = Color.cyan; // Projektil tipine göre değiştir
+            sr.color = glowColor;
+
+            // Parlak material (opsiyonel)
+            sr.material = new Material(Shader.Find("Sprites/Default"));
+
+            // Pierce upgrade'i varsa farklı renk
+            if (WeaponUpgradeManager.Instance != null &&
+                WeaponUpgradeManager.Instance.hasPierceShot)
+            {
+                spriteRenderer.color = new Color(0f, 1f, 1f); // Parlak cyan (pierce göstergesi)
+            }
+            else
+            {
+                spriteRenderer.color = Color.cyan; // Normal cyan
+            }
         }
     }
 
@@ -51,6 +65,37 @@ public class PrimaryProjectile : MonoBehaviour
         }
     }
     
+    void AddNeonTrail()
+    {
+        TrailRenderer trail = gameObject.AddComponent<TrailRenderer>();
+    
+        // Trail material
+        trail.material = new Material(Shader.Find("Sprites/Default"));
+    
+        // Renk (projektil tipine göre değiştir!)
+        Color trailColor = Color.cyan; // Örnek: Primary için cyan
+    
+       trail.startColor = trailColor;
+        trail.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f); // Fade out
+    
+        // Boyut
+        trail.startWidth = 0.2f;
+        trail.endWidth = 0.05f;
+    
+        // Süre (ne kadar iz kalacak)
+        trail.time = 0.3f; // 0.3 saniye
+    
+        // Render ayarları
+        trail.sortingOrder = -1; // Projektilden arkada
+        trail.numCornerVertices = 5;
+        trail.numCapVertices = 5;
+    
+        // Glow için (Additive blend)
+        trail.material.SetInt("_BlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
+        trail.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        trail.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+    }
+    
     void CheckEnemyCollision()
     {
         Enemy[] enemies = FindObjectsOfType<Enemy>();
@@ -69,6 +114,9 @@ public class PrimaryProjectile : MonoBehaviour
                 int finalDamage = CalculateDamage(isCritical);
                 
                 enemy.TakePlayerDamage(finalDamage);
+                
+                // IMPACT RING - YENİ! 💥
+                ShowImpactRing(enemy.transform.position, Color.cyan);
                 
                 // KRİTİK FEEDBACK - YENİ! ✅
                 if (isCritical)
@@ -175,5 +223,22 @@ public class PrimaryProjectile : MonoBehaviour
         {
             // SoundManager.Instance.PlayCriticalHit();
         }
+    }
+    
+    // Impact ring efekti - YENİ VERSİYON! 💍
+    void ShowImpactRing(Vector3 position, Color ringColor)
+    {
+        // Ring objesi oluştur
+        GameObject ringObj = new GameObject("ImpactRing");
+        ringObj.transform.position = position;
+    
+        // ImpactRing component ekle (kendi animasyonunu yapacak!)
+        ImpactRing impactRing = ringObj.AddComponent<ImpactRing>();
+        impactRing.ringColor = ringColor;
+        impactRing.duration = 0.4f;
+        impactRing.startRadius = 0.2f;
+        impactRing.endRadius = 1.2f;
+    
+        Debug.Log($"💍 Impact Ring oluşturuldu: {position}");
     }
 }

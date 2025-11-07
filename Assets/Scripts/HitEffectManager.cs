@@ -25,7 +25,7 @@ public class HitEffectManager : MonoBehaviour
     }
     
     // Vuruş efekti göster
-    public void ShowHitEffect(Vector3 position, Color color)
+    /*public void ShowHitEffect(Vector3 position, Color color)
     {
         if (hitParticlePrefab != null)
         {
@@ -42,6 +42,68 @@ public class HitEffectManager : MonoBehaviour
             // 2 saniye sonra yok et
             Destroy(effect, 2f);
         }
+    }*/
+    
+    public void ShowHitEffect(Vector3 position, Color color)
+    {
+        // Particle oluştur
+        GameObject particleObj = new GameObject("HitEffect");
+        particleObj.transform.position = position;
+    
+        ParticleSystem ps = particleObj.AddComponent<ParticleSystem>();
+        var main = ps.main;
+    
+        // NEON AYARLARI - YENİ! ✨
+        main.startColor = color;
+        main.startSize = 0.3f;
+        main.startSpeed = 3f;
+        main.startLifetime = 0.5f;
+        main.maxParticles = 20;
+    
+        // Glow için
+        var emission = ps.emission;
+        emission.rateOverTime = 0;
+        emission.SetBursts(new ParticleSystem.Burst[] { new ParticleSystem.Burst(0f, 15) });
+    
+        // Renk fade
+        var colorOverLifetime = ps.colorOverLifetime;
+        colorOverLifetime.enabled = true;
+    
+        Gradient gradient = new Gradient();
+        gradient.SetKeys(
+            new GradientColorKey[] { 
+                new GradientColorKey(color, 0f),
+                new GradientColorKey(color, 1f)
+            },
+            new GradientAlphaKey[] { 
+                new GradientAlphaKey(1f, 0f),
+                new GradientAlphaKey(0f, 1f)
+            }
+        );
+        colorOverLifetime.color = gradient;
+    
+        // Boyut küçülme
+        var sizeOverLifetime = ps.sizeOverLifetime;
+        sizeOverLifetime.enabled = true;
+        AnimationCurve curve = new AnimationCurve();
+        curve.AddKey(0f, 1f);
+        curve.AddKey(1f, 0f);
+        sizeOverLifetime.size = new ParticleSystem.MinMaxCurve(1f, curve);
+    
+        // Renderer ayarları (BLOOM için önemli!)
+        var renderer = ps.GetComponent<ParticleSystemRenderer>();
+        renderer.material = new Material(Shader.Find("Sprites/Default"));
+        renderer.sortingOrder = 10;
+    
+        // Additive blend (glow)
+        renderer.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        renderer.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+    
+        // Particle'ı başlat
+        ps.Play();
+    
+        // Otomatik yok et
+        Destroy(particleObj, main.startLifetime.constantMax);
     }
     
     // Hızlı kullanım - varsayılan renk

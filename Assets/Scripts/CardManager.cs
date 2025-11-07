@@ -151,6 +151,10 @@ public class CardManager : MonoBehaviour
         }
     
         card.SetColor(color);
+        
+        // HOTKEY EKLE - YENİ! 
+        CardHotkey hotkey = cardObj.AddComponent<CardHotkey>();
+        hotkey.hotkeyNumber = index + 1; // 1, 2, 3, 4
     
         // YAN YANA DİZİLİM - YENİ!
         int totalCards = availableCards.Length;

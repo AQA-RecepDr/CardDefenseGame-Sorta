@@ -35,6 +35,37 @@ public class ChainLightningProjectile : MonoBehaviour
         trailRenderer.endColor = new Color(1f, 1f, 0f, 0f);
     }
 
+    void AddNeonTrail()
+    {
+        TrailRenderer trail = gameObject.AddComponent<TrailRenderer>();
+    
+        // Trail material
+        trail.material = new Material(Shader.Find("Sprites/Default"));
+    
+        // Renk (projektil tipine göre değiştir!)
+        Color trailColor = Color.white; 
+    
+       trail.startColor = trailColor;
+        trail.endColor = new Color(trailColor.r, trailColor.g, trailColor.b, 0f); // Fade out
+    
+        // Boyut
+        trail.startWidth = 0.2f;
+        trail.endWidth = 0.05f;
+    
+        // Süre (ne kadar iz kalacak)
+        trail.time = 0.3f; // 0.3 saniye
+    
+        // Render ayarları
+        trail.sortingOrder = -1; // Projektilden arkada
+        trail.numCornerVertices = 5;
+        trail.numCapVertices = 5;
+    
+        // Glow için (Additive blend)
+        trail.material.SetInt("_BlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
+        trail.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        trail.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+    }
+    
     private bool isHitting = false; // YENİ! - Vuruş yapılıyor mu?
 
     void Update()
@@ -91,7 +122,7 @@ public class ChainLightningProjectile : MonoBehaviour
         
             // Hasar ver
             enemy.TakePlayerDamage(damage);
-        
+            ShowImpactRing(enemy.transform.position, Color.white); 
             // Bu düşmanı listeye ekle
             hitEnemyIDs.Add(enemyID);
         
@@ -147,7 +178,7 @@ public class ChainLightningProjectile : MonoBehaviour
     }
     
     // Sonraki hedefi bul
-Transform FindNextTarget()
+    Transform FindNextTarget()
 {
     Enemy[] enemies = FindObjectsOfType<Enemy>();
     Transform closest = null;
@@ -214,5 +245,17 @@ Transform FindNextTarget()
     
     return closest;
 }
+  
+    // Impact ring efekti
+    void ShowImpactRing(Vector3 position, Color ringColor)
+    {
+        GameObject ringObj = new GameObject("ImpactRing");
+        ringObj.transform.position = position;
     
+        ImpactRing impactRing = ringObj.AddComponent<ImpactRing>();
+        impactRing.ringColor = ringColor;
+        impactRing.duration = 0.4f;
+        impactRing.startRadius = 0.2f;
+        impactRing.endRadius = 1.2f;
+    }
 }

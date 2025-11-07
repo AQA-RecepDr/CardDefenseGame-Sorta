@@ -176,6 +176,13 @@ Zone GetZoneByAngle(float angle)
             return;
         }
         
+        // Hotkey'i gizle veya yok et
+        Transform hotkeyText = transform.Find("HotkeyText");
+        if (hotkeyText != null)
+        {
+            Destroy(hotkeyText.gameObject);
+        }
+
         // Kart indeksi geçerli mi?
         if (cardIndex < 0 || cardIndex >= cardManager.handCards.Count)
         {

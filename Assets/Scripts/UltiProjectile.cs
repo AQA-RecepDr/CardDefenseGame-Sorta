@@ -30,6 +30,10 @@ public class UltiProjectile : MonoBehaviour
         trailRenderer.startColor = new Color(1f, 0.7f, 0f);
         trailRenderer.endColor = new Color(1f, 0.3f, 0f, 0f);
         
+        trailRenderer.material.SetInt("_BlendOp", (int)UnityEngine.Rendering.BlendOp.Add);
+        trailRenderer.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        trailRenderer.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
+        
         // Lifetime sonra yok ol
         Destroy(gameObject, lifetime);
     }
