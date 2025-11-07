@@ -37,7 +37,7 @@ public class WeaponManager : MonoBehaviour
     
     [Header("Görsel Feedback")]
     public SpriteRenderer weaponRenderer; // Silah dairesi
-    public Color normalColor = new Color(0.5f, 0.5f, 0.5f); // Gri
+    public Color normalColor = new Color(1f, 1f, 1f); // Gri
     public Color readyColor = new Color(1f, 0.5f, 0f); // Turuncu
     public float shakeAmount = 0.05f; // Titreşim miktarı
     private Vector3 originalWeaponPos;
@@ -255,7 +255,7 @@ public class WeaponManager : MonoBehaviour
         return cooldown;
     }
     
-    // Silahı mouse yönüne döndür
+    /* Silahı mouse yönüne döndür
     void RotateWeaponTowardsMouse()
     {
         Vector3 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
@@ -270,6 +270,26 @@ public class WeaponManager : MonoBehaviour
         // Silahı döndür (Z ekseni etrafında)
         transform.rotation = Quaternion.Euler(0, 0, angle);
     
+        // TÜM SPRITE'LARI FLIP ET - YENİ! ⚡
+        SpriteRenderer[] allSprites = GetComponentsInChildren<SpriteRenderer>();
+    
+        foreach (SpriteRenderer sr in allSprites)
+        {
+            if (sr != null)
+            {
+                // Sol tarafa bakıyorsa (90° ile 270° arası)
+                if (angle > 90 || angle < -90)
+                {
+                    sr.flipY = true; // Silahı ters çevir
+                }
+                else
+                {
+                    sr.flipY = false; // Normal
+                }
+            }
+        }
+        
+        /*
         // Eğer silah ters dönerse (sol tarafa bakınca) sprite'ı flip et
         SpriteRenderer sr = weaponRenderer;
         if (sr != null)
@@ -282,6 +302,44 @@ public class WeaponManager : MonoBehaviour
             else
             {
                 sr.flipY = false; // Normal
+            }
+        }
+    }
+    */
+    
+    void RotateWeaponTowardsMouse()
+    {
+        Vector3 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        mousePos.z = 0;
+
+        Vector3 direction = mousePos - transform.position;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+    
+        float spriteOffset = -90f;
+    
+        // Silahı döndür
+        transform.rotation = Quaternion.Euler(0, 0, angle + spriteOffset);
+
+        // SPRITE'LARI SCALE İLE FLIP ET - YENİ! 🔄
+        SpriteRenderer[] allSprites = GetComponentsInChildren<SpriteRenderer>();
+    
+        foreach (SpriteRenderer sr in allSprites)
+        {
+            if (sr != null)
+            {
+                Vector3 scale = sr.transform.localScale;
+            
+                // Sol tarafa bakıyorsa
+                if (angle > 90 || angle < -90)
+                {
+                    scale.x = -Mathf.Abs(scale.x); // Negatif (ters)
+                }
+                else
+                {
+                    scale.x = Mathf.Abs(scale.x); // Pozitif (normal)
+                }
+            
+                sr.transform.localScale = scale;
             }
         }
     }

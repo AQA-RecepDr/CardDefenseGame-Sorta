@@ -3537,7 +3537,6 @@ GameObject:
   - component: {fileID: 650783899}
   - component: {fileID: 650783898}
   - component: {fileID: 650783897}
-  - component: {fileID: 650783900}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -3599,8 +3598,8 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_SortingOrder: 3
+  m_Sprite: {fileID: 21300000, guid: c7af8d61e8ebe8c4ea5a81c3c8ad888d, type: 3}
   m_Color: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -3621,29 +3620,12 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 793046859}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &650783900
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 650783896}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2d69055e4025c80499b24b7ce50a0617, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sides: 6
-  radius: 0.8
-  glowColor: {r: 0, g: 1, b: 1, a: 1}
-  pulseSpeed: 2
-  pulseAmount: 0.1
 --- !u!1 &658894569
 GameObject:
   m_ObjectHideFlags: 0
@@ -5897,7 +5879,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 985653789}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -6223,7 +6205,7 @@ MonoBehaviour:
   waveConfigs:
   - waveNumber: 1
     totalEnemies: 30
-    spawnInterval: 2
+    spawnInterval: 0.8
     enemyConfigs:
     - enemyType: 0
       usePercentage: 1
@@ -6579,6 +6561,7 @@ GameObject:
   - component: {fileID: 1047941343}
   - component: {fileID: 1047941345}
   - component: {fileID: 1047941344}
+  - component: {fileID: 1047941346}
   m_Layer: 0
   m_Name: WeaponCenter
   m_TagString: Untagged
@@ -6596,7 +6579,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 349322449}
@@ -6631,7 +6614,7 @@ MonoBehaviour:
   trajectoryLine: {fileID: 0}
   trajectoryLength: 5
   weaponRenderer: {fileID: 1047941345}
-  normalColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  normalColor: {r: 1, g: 1, b: 1, a: 1}
   readyColor: {r: 1, g: 0.5, b: 0, a: 1}
   shakeAmount: 0.05
   shakeDuration: 1
@@ -6678,8 +6661,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 0.39215687, g: 0.39215687, b: 0.39215687, a: 1}
+  m_Sprite: {fileID: 21300000, guid: c7af8d61e8ebe8c4ea5a81c3c8ad888d, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -6689,6 +6672,22 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &1047941346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1047941342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d69055e4025c80499b24b7ce50a0617, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  glowColor: {r: 0, g: 1, b: 1, a: 1}
+  outlineThickness: 0.03
+  pulseSpeed: 1
+  pulseAmount: 0.05
 --- !u!1 &1054106772
 GameObject:
   m_ObjectHideFlags: 0

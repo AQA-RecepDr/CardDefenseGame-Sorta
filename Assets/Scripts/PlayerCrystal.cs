@@ -2,58 +2,65 @@ using UnityEngine;
 
 public class PlayerCrystal : MonoBehaviour
 {
-    [Header("Crystal Settings")]
-    public int sides = 6; // Hexagon
-    public float radius = 0.8f;
+    [Header("Outline Settings")]
     public Color glowColor = new Color(0f, 1f, 1f); // Cyan
+    public float outlineThickness = 0.15f; // Kalınlık
     public float pulseSpeed = 2f;
-    public float pulseAmount = 0.1f;
+    public float pulseAmount = 0.05f;
     
-    private LineRenderer lineRenderer;
-    private float baseRadius;
+    private GameObject outlineObj;
+    private SpriteRenderer outlineSprite;
+    private SpriteRenderer mainSprite;
+    private float baseThickness;
     
     void Start()
     {
-        baseRadius = radius;
-        CreateCrystal();
+        mainSprite = GetComponent<SpriteRenderer>();
+        
+        if (mainSprite == null || mainSprite.sprite == null)
+        {
+            Debug.LogError("❌ Sprite bulunamadı!");
+            return;
+        }
+        
+        CreateOutline();
+        baseThickness = outlineThickness;
     }
     
     void Update()
     {
         // Pulse animasyonu
-        float pulse = Mathf.Sin(Time.time * pulseSpeed) * pulseAmount;
-        radius = baseRadius + pulse;
-        UpdateCrystal();
-    }
-    
-    void CreateCrystal()
-    {
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = glowColor;
-        lineRenderer.endColor = glowColor;
-        lineRenderer.startWidth = 0.1f;
-        lineRenderer.endWidth = 0.1f;
-        lineRenderer.positionCount = sides + 1;
-        lineRenderer.loop = true;
-        lineRenderer.sortingOrder = 10;
-        
-        UpdateCrystal();
-    }
-    
-    void UpdateCrystal()
-    {
-        if (lineRenderer == null) return;
-        
-        for (int i = 0; i < sides + 1; i++)
+        if (outlineObj != null)
         {
-            float angle = i * 360f / sides * Mathf.Deg2Rad;
-            Vector3 pos = new Vector3(
-                Mathf.Cos(angle) * radius,
-                Mathf.Sin(angle) * radius,
-                0f
-            );
-            lineRenderer.SetPosition(i, pos);
+            float pulse = Mathf.Sin(Time.time * pulseSpeed) * pulseAmount;
+            float currentThickness = baseThickness + pulse;
+            
+            // Outline'ı büyüt/küçült
+            float scale = 1f + (currentThickness * 2f);
+            outlineObj.transform.localScale = Vector3.one * scale;
         }
+    }
+    
+    void CreateOutline()
+    {
+        // Outline objesi oluştur
+        outlineObj = new GameObject("PlayerOutline");
+        outlineObj.transform.SetParent(transform, false);
+        outlineObj.transform.localPosition = Vector3.zero;
+        
+        // Sprite renderer ekle
+        outlineSprite = outlineObj.AddComponent<SpriteRenderer>();
+        outlineSprite.sprite = mainSprite.sprite; // Aynı sprite!
+        outlineSprite.color = glowColor;
+        outlineSprite.sortingOrder = mainSprite.sortingOrder - 1; // Arkada
+        
+        // Biraz büyük
+        float scale = 1f + (outlineThickness * 2f);
+        outlineObj.transform.localScale = Vector3.one * scale;
+        
+        // Material (glow için)
+        outlineSprite.material = new Material(Shader.Find("Sprites/Default"));
+        
+        Debug.Log("✨ Player outline oluşturuldu!");
     }
 }
