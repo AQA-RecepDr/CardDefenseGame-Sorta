@@ -188,7 +188,7 @@ public class WeaponManager : MonoBehaviour
             }
             
             // Ulti için sağ tık (hala manuel)
-            if (Input.GetMouseButtonDown(1) && isUltiReady)
+            if (Input.GetKeyDown(KeyCode.F) && isUltiReady)
             {
                 FireSecondary();
             }
@@ -220,7 +220,7 @@ public class WeaponManager : MonoBehaviour
                 }
 
                 // SAĞ TIK - İkincil ateş
-                if (Input.GetMouseButtonDown(1) && isUltiReady)
+                if (Input.GetKeyDown(KeyCode.F) && isUltiReady)
                 {
                     FireSecondary();
                 }

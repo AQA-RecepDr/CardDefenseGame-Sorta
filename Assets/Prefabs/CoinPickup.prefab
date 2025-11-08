@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &9132433888214288841
+--- !u!1 &6159994545820662075
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,39 +8,39 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3131682120611612080}
-  - component: {fileID: 4988738307113404576}
-  - component: {fileID: 1464757670398871720}
-  - component: {fileID: 8528861464244599064}
+  - component: {fileID: 7579468442387229788}
+  - component: {fileID: 5663653017790270624}
+  - component: {fileID: 341627590543858812}
+  - component: {fileID: 5726592395803534450}
   m_Layer: 0
-  m_Name: Enemy
+  m_Name: CoinPickup
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3131682120611612080
+--- !u!4 &7579468442387229788
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9132433888214288841}
+  m_GameObject: {fileID: 6159994545820662075}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.6, z: 1}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &4988738307113404576
+--- !u!212 &5663653017790270624
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9132433888214288841}
+  m_GameObject: {fileID: 6159994545820662075}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -74,56 +74,43 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
-  m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_SortingOrder: 5
+  m_Sprite: {fileID: -2135585597343286014, guid: 5aa8b770bc43046bc8d993d0d5b7f4a5, type: 3}
+  m_Color: {r: 1, g: 1, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.8828125, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &1464757670398871720
+--- !u!114 &341627590543858812
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9132433888214288841}
+  m_GameObject: {fileID: 6159994545820662075}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e57f6abe8aa03542bfe4ff91256bfca, type: 3}
+  m_Script: {fileID: 11500000, guid: 619bf7ed2b732184596f973eb98c11c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 100
-  baseSpeed: 2
-  damageToPlayer: 1
-  laneIndex: 0
-  zoneIndex: 0
-  coinPrefab: {fileID: 6159994545820662075, guid: fe2c4696b5a12a942b7889ed95578e06, type: 3}
-  useZigzag: 0
-  zigzagAmplitude: 2
-  zigzagFrequency: 2
-  isKnockbacked: 0
-  knockbackDuration: 0.1
-  groupID: -1
-  groupOffset: {x: 0, y: 0, z: 0}
-  useDash: 0
-  dashSpeed: 8
-  dashCooldown: 2
-  enemyType: 0
-  isDestroyed: 0
---- !u!58 &8528861464244599064
+  coinValue: 1
+  lifetime: 15
+  fallSpeed: 0.2
+  isBeingPulled: 0
+  pullSpeed: 10
+  autoCollectDistance: 3
+--- !u!58 &5726592395803534450
 CircleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9132433888214288841}
+  m_GameObject: {fileID: 6159994545820662075}
   m_Enabled: 1
   m_Density: 1
   m_Material: {fileID: 0}
@@ -151,4 +138,4 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 0.5
+  m_Radius: 0.3

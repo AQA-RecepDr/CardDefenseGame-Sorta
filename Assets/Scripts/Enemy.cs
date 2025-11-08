@@ -23,6 +23,9 @@ public class Enemy : MonoBehaviour
         Boss     // BOSS - YENI! 👾
     }
     
+    [Header("Coin Drop")]
+    public GameObject coinPrefab;
+    
     [Header("Hareket Pattern")]
     public bool useZigzag = false;
     public float zigzagAmplitude = 2f; // Zigzag geniÅŸliÄŸi
@@ -405,30 +408,7 @@ public class Enemy : MonoBehaviour
     {
         switch (enemyType)
         {
-            /*
-            case EnemyType.White:
-                spriteRenderer.color = new Color(0.9f, 0.9f, 0.9f); // AÃ§Ä±k gri
-                break;
-            case EnemyType.Black:
-                spriteRenderer.color = new Color(0.2f, 0.2f, 0.2f); // Koyu siyah
-                break;
-            case EnemyType.Yellow:
-                spriteRenderer.color = new Color(1f, 0.95f, 0.2f); // Parlak sarÄ±
-                break;
-            case EnemyType.Orange:
-                spriteRenderer.color = new Color(1f, 0.6f, 0f); // Turuncu - YENÄ°! âœ…
-                break;
-            case EnemyType.Blue:
-                spriteRenderer.color = new Color(0.2f, 0.5f, 1f); // Mavi - YENÄ°! âœ…
-                break;
-            case EnemyType.Red:
-                spriteRenderer.color = new Color(1f, 0.2f, 0.2f); // KÄ±rmÄ±zÄ± - YENÄ°! âœ…
-                break;
-            case EnemyType.Boss:
-                spriteRenderer.color = new Color(0.6f, 0.2f, 0.8f); // Koyu mor - BOSS! 👾
-                break;
-            */
-            case EnemyType.White:
+           case EnemyType.White:
                 spriteRenderer.color = new Color(1f, 1f, 1f); // TAM BEYAZ (glow için)
                 break;
             case EnemyType.Black:
@@ -634,11 +614,14 @@ public class Enemy : MonoBehaviour
     
         isDestroyed = true;
         
-        if (CoinManager.Instance != null)
-        {
-            int coinAmount = CoinManager.Instance.coinsPerKill;
-            CoinManager.Instance.AddCoins(coinAmount);
-        }
+        //if (CoinManager.Instance != null)
+        //{
+        //    int coinAmount = CoinManager.Instance.coinsPerKill;
+        //    CoinManager.Instance.AddCoins(coinAmount);
+        //}
+        
+        SpawnCoins();
+        
         // BOSS öldü mü? Özel ödül ve KAZANMA!
         if (enemyType == EnemyType.Boss)
         {
@@ -669,6 +652,65 @@ public class Enemy : MonoBehaviour
             {
                 // 2 saniye bekle, sonra kazanma ekranı
                 StartCoroutine(WinAfterDelay(2f));
+            }
+        }
+        
+        // Düşman tipine göre coin spawn et
+        void SpawnCoins()
+        {
+            if (coinPrefab == null)
+            {
+                Debug.LogWarning("⚠️ Coin prefab atanmamış!");
+                return;
+            }
+    
+            // Düşman tipine göre coin sayısı
+            int coinCount = GetCoinCountByType();
+    
+            // Coinleri spawn et
+            for (int i = 0; i < coinCount; i++)
+            {
+                GameObject coinObj = Instantiate(coinPrefab, transform.position, Quaternion.identity);
+        
+                // CoinPickup script'i varsa değer ata
+                CoinPickup coin = coinObj.GetComponent<CoinPickup>();
+                if (coin != null)
+                {
+                    coin.coinValue = 1; // Her coin 1 değerinde
+                }
+            }
+    
+            Debug.Log($"💰 {coinCount} coin spawn edildi! (Type: {enemyType})");
+        }
+
+// Düşman tipine göre coin sayısı
+        int GetCoinCountByType()
+        {
+            switch (enemyType)
+            {
+                case EnemyType.White:
+                    return 5; // 5 coin
+            
+                case EnemyType.Yellow:
+                    return 6; // 6 coin
+            
+                case EnemyType.Black:
+                    return 10; // 10 coin (tank)
+            
+                case EnemyType.Blue:
+                    return 3; // 3 coin (küçük)
+            
+                case EnemyType.Red:
+                    return 10; // 10 coin
+            
+                case EnemyType.Orange:
+                    return 7; // 7 coin
+            
+                case EnemyType.Boss:
+                    return 100; // 100 coin! 🎉
+            
+                default:
+                    return 5;
             }
         }
         

@@ -16,6 +16,10 @@ public class SoundManager : MonoBehaviour
     public AudioClip ultiSound;
     public AudioClip turretShootSound;
     
+    [Header("Coin Sounds - YENİ! 💰")]
+    public AudioClip coinCollectSound; // Coin toplarken
+    public AudioClip vacuumSound; // Vakum sesi (loop)
+    
     [Header("Hit Sounds")]
     public AudioClip hitSound;
     public AudioClip pierceHitSound;
@@ -174,6 +178,10 @@ public void StopMusic()
     public void PlayBossTeleport() => PlaySound(bossTeleportSound, 0.8f);
     public void PlayBossHurt() => PlaySound(bossHurtSound, 0.9f);
     public void PlayBossDeath() => PlaySound(bossDeathSound, 1.2f); // En yüksek!
+    
+    // Coin sesleri
+    public void PlayCoinCollect() => PlaySound(coinCollectSound, 0.4f);
+    public void PlayVacuumLoop() => PlaySound(vacuumSound, 0.3f);
     
     // Hızlı erişim fonksiyonları
     public void PlayShoot() => PlaySound(shootSound);
