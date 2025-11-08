@@ -37,6 +37,11 @@ public class Enemy : MonoBehaviour
     public float knockbackDuration = 0.1f; // 0.1 saniye geriye gider
     private Vector3 knockbackVelocity = Vector3.zero;
     
+    [Header("Hit Reaction - YENİ! 💥")]
+    public bool enableHitReaction = true;
+    private Vector3 originalScale;
+    private bool isHitAnimating = false;
+    
     [Header("Grup Hareketi")]
     public int groupID = -1; // Hangi gruba ait (-1 = yalnÄ±z)
     public Vector3 groupOffset = Vector3.zero; // Grup iÃ§i pozisyon
@@ -69,6 +74,9 @@ public class Enemy : MonoBehaviour
     {
         SetupEnemyType();
         UpdateVisual();
+        
+        // Orijinal scale'i kaydet
+        originalScale = transform.localScale;
     }
 
     void Update()
@@ -286,7 +294,7 @@ public class Enemy : MonoBehaviour
         }
     }
     
-    // Dash yÃ¶nÃ¼nÃ¼ belirle (zone'a gÃ¶re saÄŸ/sol)
+    // Dash yönünü belirle (zone'a göre sağ/sol)
     Vector3 GetDashDirection()
 {
     // Rastgele saÄŸ veya sol
@@ -320,7 +328,7 @@ public class Enemy : MonoBehaviour
     return direction;
 }
 
-    // DÃ¼ÅŸman tipine gÃ¶re Ã¶zellikleri ayarla
+    // Düşman tipine göre özellikler
     void SetupEnemyType()
     {
         switch (enemyType)
@@ -564,10 +572,10 @@ public class Enemy : MonoBehaviour
     
     void ApplyKnockback()
     {
-        // Merkezden dÄ±ÅŸarÄ± doÄŸru (vuruÅŸ yÃ¶nÃ¼)
+        // Merkezden dışarı doğru (vuruş yönü)
         Vector3 knockbackDirection = (transform.position - Vector3.zero).normalized;
     
-        // Knockback gÃ¼cÃ¼ (dÃ¼ÅŸman tipine gÃ¶re)
+        // nockback gücü (düşman tipine göre)
         float knockbackForce = 3f; // Base knockback
     
         switch (enemyType)
@@ -598,7 +606,101 @@ public class Enemy : MonoBehaviour
         knockbackVelocity = knockbackDirection * knockbackForce;
     
         Debug.Log($"ðŸ’¥ Knockback! Direction: {knockbackDirection}, Force: {knockbackForce}");
+        
+        if (enableHitReaction && !isHitAnimating)
+        {
+            StartCoroutine(HitReactionAnimation(knockbackDirection));
+        }
     }
+    
+    // Hit reaction animasyonu (squash & stretch)
+IEnumerator HitReactionAnimation(Vector3 hitDirection)
+{
+    isHitAnimating = true;
+    
+    Debug.Log($" HIT REACTION BAŞLADI! Enemy: {enemyType}, Direction: {hitDirection}");
+    Debug.Log($" Original Scale: {originalScale}, Current Scale: {transform.localScale}");
+    
+    Quaternion originalRotation = transform.rotation;
+    
+    // 1. AŞAMA: SQUASH (Ezilme)
+    // Vuruş yönünde ezil
+    float squashDuration = 0.2f;
+    float elapsed = 0f;
+    
+    // Vuruş yönünü hesapla (normalize edilmiş)
+    Vector3 impactAxis = hitDirection.normalized;
+    
+    // Ezilme miktarı (vuruş yönünde küçül, diğer yönde büyü)
+    float squashAmount = 0.5f; // %30 küçülme
+    float stretchAmount = 1.4f; // %15 büyüme
+    
+    // Rotation wobble miktarı
+    float maxRotation = 30f; // 15 derece
+    
+    while (elapsed < squashDuration)
+    {
+        elapsed += Time.deltaTime;
+        float t = elapsed / squashDuration;
+        
+        // Ease out cubic (yumuşak geçiş)
+        float ease = 1f - Mathf.Pow(1f - t, 3f);
+        
+        // Vuruş yönünde ezil
+        float currentSquash = Mathf.Lerp(1f, squashAmount, ease);
+        float currentStretch = Mathf.Lerp(1f, stretchAmount, ease);
+        
+        // Scale hesapla
+        Vector3 newScale = originalScale;
+        
+        // X ve Y eksenlerinde farklı scale
+        if (Mathf.Abs(impactAxis.x) > Mathf.Abs(impactAxis.y))
+        {
+            // Yatay vuruş
+            newScale.x *= currentSquash; // X ezilir
+            newScale.y *= currentStretch; // Y uzar
+        }
+        else
+        {
+            // Dikey vuruş
+            newScale.y *= currentSquash; // Y ezilir
+            newScale.x *= currentStretch; // X uzar
+        }
+        
+        transform.localScale = newScale;
+        // ROTATION - YENİ! 🔄
+        float rotationAngle = Mathf.Lerp(0f, maxRotation, ease) * Mathf.Sign(impactAxis.x);
+        transform.rotation = originalRotation * Quaternion.Euler(0, 0, rotationAngle);
+        
+        yield return null;
+    }
+    
+    // 2. AŞAMA: STRETCH (Geri Esneme) 🎯
+    float stretchDuration = 0.3f;
+    elapsed = 0f;
+    
+    while (elapsed < stretchDuration)
+    {
+        elapsed += Time.deltaTime;
+        float t = elapsed / stretchDuration;
+        
+        // Elastic ease out (elastik geri dönüş)
+        float ease = Mathf.Sin(-13f * (t + 1f) * Mathf.PI * 0.5f) * Mathf.Pow(2f, -10f * t) + 1f;
+        
+        // Normal scale'e geri dön
+        Vector3 newScale = Vector3.Lerp(transform.localScale, originalScale, ease);
+        transform.localScale = newScale;
+        // Rotation geri dön
+        transform.rotation = Quaternion.Lerp(transform.rotation, originalRotation, ease);
+        
+        yield return null;
+    }
+    
+    // Son dokunuş: Kesinlikle orijinal scale
+    transform.localScale = originalScale;
+    transform.rotation = originalRotation;
+    isHitAnimating = false;
+}
     
     System.Collections.IEnumerator DamageFlash()
     {

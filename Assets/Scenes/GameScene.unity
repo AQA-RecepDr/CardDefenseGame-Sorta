@@ -351,16 +351,18 @@ MonoBehaviour:
   tripleShootSound: {fileID: 8300000, guid: 0bd05763df902854a80475577a26666a, type: 3}
   ultiSound: {fileID: 8300000, guid: 281e15cc92254794eaf05caf4d044b76, type: 3}
   turretShootSound: {fileID: 8300000, guid: 6739c01659ad96d47987f4ddee226b36, type: 3}
+  coinCollectSound: {fileID: 8300000, guid: 52320e590bf774734a288886eba557ba, type: 3}
+  vacuumSound: {fileID: 8300000, guid: 724131bc8a7f34041bb9f1701f0cb58d, type: 3}
   hitSound: {fileID: 8300000, guid: 75adfe9a619833445a701305b983e548, type: 3}
   pierceHitSound: {fileID: 8300000, guid: 0b93f9af63befa2478916a5396131fff, type: 3}
-  enemyDeathSound: {fileID: 8300000, guid: 9930d5b4be15bb04c9d0a6fa0d7e6b2e, type: 3}
+  enemyDeathSound: {fileID: 8300000, guid: b9eff218e132a4e76be78840eca96fb2, type: 3}
   bossHitSound: {fileID: 8300000, guid: bb2e2714f962491428dcb0b38598b251, type: 3}
   playerHurtSound: {fileID: 8300000, guid: e1a75776f005439469f89a17a986c567, type: 3}
   chargeFullSound: {fileID: 8300000, guid: 7f4aa26d5b55226409cda231ffaf869b, type: 3}
   cardPlaceSound: {fileID: 8300000, guid: a37f44cbf8c2a7443a3c361efa2f233a, type: 3}
   chargeFireSound: {fileID: 8300000, guid: 986d6b30567e30e428f3f21373fe45ca, type: 3}
-  buttonHoverSound: {fileID: 0}
-  buttonClickSound: {fileID: 0}
+  buttonHoverSound: {fileID: 8300000, guid: 32d4b1811dda14a6cb9e059ee8ad17d2, type: 3}
+  buttonClickSound: {fileID: 8300000, guid: dc6614beca09347ec9b258f12d154bdd, type: 3}
   levelUpSound: {fileID: 8300000, guid: 7784e7ab59ab376458c07be56b1a8d6f, type: 3}
   bossMusicLoop: {fileID: 0}
   normalMusicLoop: {fileID: 0}
@@ -2596,6 +2598,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3c297fcf3a7915c4098b1776b4619dad, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableMouseFollow: 1
+  mouseFollowStrength: 0.5
+  mouseFollowSpeed: 5
+  mouseFollowDeadzone: 0.1
 --- !u!114 &519420034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4087,9 +4093,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gridWidth: 20
   gridHeight: 20
-  gridSpacing: 1
-  gridColor: {r: 0, g: 0.5, b: 1, a: 0.1}
+  gridSpacing: 2
+  gridColor: {r: 0, g: 0.5, b: 1, a: 0.023529412}
   lineWidth: 0.02
+  lineSegments: 30
+  enableAnimation: 1
+  waveSpeed: 1
+  waveAmplitude: 0.12
+  waveFrequency: 1.5
+  randomMovementAmount: 0.04
 --- !u!4 &696807977
 Transform:
   m_ObjectHideFlags: 0
@@ -6205,7 +6217,7 @@ MonoBehaviour:
   waveConfigs:
   - waveNumber: 1
     totalEnemies: 30
-    spawnInterval: 0.8
+    spawnInterval: 2
     enemyConfigs:
     - enemyType: 0
       usePercentage: 1
@@ -6562,6 +6574,7 @@ GameObject:
   - component: {fileID: 1047941345}
   - component: {fileID: 1047941344}
   - component: {fileID: 1047941346}
+  - component: {fileID: 1047941347}
   m_Layer: 0
   m_Name: WeaponCenter
   m_TagString: Untagged
@@ -6688,6 +6701,23 @@ MonoBehaviour:
   outlineThickness: 0.03
   pulseSpeed: 1
   pulseAmount: 0.05
+--- !u!114 &1047941347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1047941342}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e6f19d4948a209947beafb61551540ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vacuumRange: 50
+  vacuumWidth: 2
+  isVacuumActive: 0
+  vacuumBeamPrefab: {fileID: 0}
+  vacuumLine: {fileID: 0}
 --- !u!1 &1054106772
 GameObject:
   m_ObjectHideFlags: 0

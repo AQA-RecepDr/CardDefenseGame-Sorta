@@ -314,7 +314,7 @@ IEnumerator CheckWaveCompleteDelayed()
 
 
     
-    // Tek bir dÃ¼ÅŸman spawn et
+    // Tek bir düşman spawn et
 void SpawnEnemyAt(Vector3 spawnPos, int zoneIndex)
 {
     Enemy.EnemyType randomType = GetRandomEnemyType();
@@ -335,7 +335,7 @@ void SpawnEnemyAt(Vector3 spawnPos, int zoneIndex)
         enemy.enemyType = randomType;
         enemy.gameObject.name = $"Enemy_{enemiesSpawned}_{randomType}";
         
-        Debug.Log($"ðŸ‘¾ DÃ¼ÅŸman spawn! #{enemiesSpawned} Zone:{zoneIndex}, Tip:{randomType}");
+        Debug.Log($"Düşman spawn! #{enemiesSpawned} Zone:{zoneIndex}, Tip:{randomType}");
     }
     
     UpdateSpawnUI();

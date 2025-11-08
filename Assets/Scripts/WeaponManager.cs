@@ -69,6 +69,7 @@ public class WeaponManager : MonoBehaviour
     void Start()
     {
         mainCamera = Camera.main;
+        isAiming = true;
         SetupTrajectory();
         
         // Silah renderer'ını al
@@ -196,21 +197,7 @@ public class WeaponManager : MonoBehaviour
         else
         {
             // MANUEL MOD (Auto-Target yok)
-        
-            // R tuşu - Aiming modu
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                isAiming = !isAiming;
             
-                if (!isAiming)
-                {
-                    HideTrajectory();
-                }
-            }
-
-            // Aiming modundayken
-            if (isAiming)
-            {
                 UpdateTrajectory();
 
                 // Sol tık BASILI TUTUNCA - Otomatik ateş!
@@ -223,8 +210,7 @@ public class WeaponManager : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.F) && isUltiReady)
                 {
                     FireSecondary();
-                }
-            }
+                } 
         }
     }
     
