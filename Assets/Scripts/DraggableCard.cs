@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class DraggableCard : MonoBehaviour
 {
-    private bool isDragging = false;
+    public bool isDragging = false;
     private Vector3 offset;
     private Camera mainCamera;
     private Vector3 originalPosition;

@@ -4,13 +4,13 @@ public class Zone : MonoBehaviour
 {
     public enum ZoneDirection
     {
-        Top,    // Üst
-        Right,  // Sağ
+        Top,    // Ust
+        Right,  // Sag
         Bottom, // Alt
         Left    // Sol
     }
     
-    [Header("Bölge Ayarları")]
+    [Header("Bolge Ayarlari")]
     public ZoneDirection direction;
     public int zoneIndex; // 0, 1, 2, 3
     
@@ -19,17 +19,17 @@ public class Zone : MonoBehaviour
     public float lightningFireRate = 3f; // 3 saniyede bir (eskiden 2s)
     
     [Header("Kart Sistemi")]
-    public Card placedCard; // Bu bölgeye yerleştirilmiş kart
-    public Transform cardSlot; // Kartın duracağı pozisyon
+    public Card placedCard; // Bu bolgeye yerlestirilmis kart
+    public Transform cardSlot; // Kartin duracagi pozisyon
     
     [Header("Highlight")]
     public bool isHighlighted = false;
     public GameObject highlightVisual;
     private SpriteRenderer zoneRenderer;
     private Color normalColor;
-    public Color highlightColor = new Color(1f, 1f, 0.5f, 0.3f); // Sarı, yarı saydam
+    public Color highlightColor = new Color(1f, 1f, 0.5f, 0.3f); // Sari, yari saydam
     
-    // Buff sistemi (Lane'den kopyalandı)
+    // Buff sistemi (Lane'den kopyalandi)
     public bool hasSlowBuff = false;
     public float slowMultiplier = 0.5f;
     public bool hasHealBuff = false;
@@ -41,15 +41,18 @@ public class Zone : MonoBehaviour
     private float lightningTimer = 0f;
     public GameObject lightningProjectilePrefab;
     
-    // Kart süresi
+    // Kart suresi
     public float cardDuration = 30f;
     private float cardTimer = 0f;
     private bool hasActiveCard = false;
     
+    // Neon Highlight referansi
+    private NeonZoneHighlight neonHighlight;
+    
     
     void Start()
     {
-        // Zone renderer'ı al (eğer varsa)
+        // Zone renderer'i al (eger varsa)
         zoneRenderer = GetComponent<SpriteRenderer>();
     
         if (zoneRenderer != null)
@@ -57,30 +60,53 @@ public class Zone : MonoBehaviour
             normalColor = zoneRenderer.color;
         }
         
-        // Highlight visual'ı gizle
+        // Highlight visual'i gizle
         if (highlightVisual != null)
         {
             highlightVisual.SetActive(false);
         }
+        
+        // NeonZoneHighlight component'ini bul
+        neonHighlight = GetComponent<NeonZoneHighlight>();
     }
     
-    // Zone'u highlight et
-    public void Highlight(bool highlight)
+    // Zone'u highlight et (renk ile)
+    public void Highlight(bool highlight, Color? color = null)
     {
         isHighlighted = highlight;
-    
-        // Highlight visual kullan (varsa)
+        
+        // Highlight visual kullan (ZoneHighlightEffect)
         if (highlightVisual != null)
         {
-            highlightVisual.SetActive(highlight);
+            ZoneHighlightEffect effect = highlightVisual.GetComponent<ZoneHighlightEffect>();
+
+            if (effect != null)
+            {
+                if (highlight)
+                {
+                    Color highlightColor = color ?? Color.white;
+                    effect.Show(highlightColor);
+                }
+                else
+                {
+                    effect.Hide();
+                }
+            }
+            else
+            {
+                // Eski sistem (fallback)
+                highlightVisual.SetActive(highlight);
+            }
         }
-        // Yoksa sprite renderer'ı değiştir
-        else if (zoneRenderer != null)
+        
+        // Yoksa sprite renderer'i degistir
+        if (zoneRenderer != null && highlightVisual == null)
         {
             zoneRenderer.color = highlight ? highlightColor : normalColor;
         }
     }
     
+
     void Update()
     {
         // Turret buff aktifse
@@ -95,11 +121,14 @@ public class Zone : MonoBehaviour
             LightningUpdate();
         }
         
-        // Kart süresi kontrolü
+        // Kart suresi kontrolu
         if (hasActiveCard && placedCard != null)
         {
             cardTimer -= Time.deltaTime;
             UpdateCardFade();
+            
+            // KART AKTIFKEN HIGHLIGHT'I KORU!
+            UpdateCardHighlight();
             
             if (cardTimer <= 0)
             {
@@ -108,29 +137,71 @@ public class Zone : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// Kart aktifken highlight'i guncelle (kart rengiyle)
+    /// </summary>
+    void UpdateCardHighlight()
+    {
+        if (neonHighlight != null && placedCard != null)
+        {
+            Color cardColor = GetCardColorForHighlight(placedCard.cardColor);
+            neonHighlight.SetHighlight(true, cardColor);
+        }
+    }
+    
+    /// <summary>
+    /// Kart rengini highlight icin Color'a cevir
+    /// </summary>
+    Color GetCardColorForHighlight(Card.CardColor cardColor)
+    {
+        switch (cardColor)
+        {
+            case Card.CardColor.Red:
+                return new Color(1f, 0.2f, 0.2f, 0.8f); // Kirmizi
+            case Card.CardColor.Blue:
+                return new Color(0.2f, 0.5f, 1f, 0.8f); // Mavi
+            case Card.CardColor.Green:
+                return new Color(0.2f, 1f, 0.4f, 0.8f); // Yesil
+            case Card.CardColor.Yellow:
+                return new Color(1f, 1f, 0.2f, 0.8f); // Sari
+            case Card.CardColor.Purple:
+                return new Color(0.8f, 0.2f, 1f, 0.8f); // Mor
+            case Card.CardColor.Orange:
+                return new Color(1f, 0.6f, 0f, 0.8f); // Turuncu
+            default:
+                return Color.white;
+        }
+    }
+    
     // Zone'u temizle (wave bitince)
     public void ClearZone()
     {
         if (placedCard != null)
         {
-            Debug.Log($"🧹 Zone {zoneIndex} temizleniyor - Kart: {placedCard.cardColor}");
+            Debug.Log($"Zone {zoneIndex} temizleniyor - Kart: {placedCard.cardColor}");
         
-            // Kartı yok et
+            // Karti yok et
             Destroy(placedCard.gameObject);
         
-            // Referansı temizle
+            // Referansi temizle
             placedCard = null;
         
-            // Buff'ı kaldır
+            // Buff'i kaldir
             RemoveBuff();
         
-            // Timer'ı sıfırla
+            // Timer'i sifirla
             hasActiveCard = false;
             cardTimer = 0f;
+            
+            // HIGHLIGHT'I KAPAT!
+            if (neonHighlight != null)
+            {
+                neonHighlight.ResetToIdle();
+            }
         }
     }
     
- // Kart yerleştir
+ // Kart yerlestir
     public bool TryPlaceCard(Card card)
     {
         if (card.isPlaceOnCooldown)
@@ -139,13 +210,13 @@ public class Zone : MonoBehaviour
         if (placedCard != null)
             return false;
         
-        // ORİJİNAL KARTI COOLDOWN'A SOK - ÖNCE! ✅
+        // ORIGINAL KARTI COOLDOWN'A SOK - ONCE!
         card.StartPlaceCooldown();
 
         GameObject cardCopy = Instantiate(card.gameObject);
         Card cardCopyScript = cardCopy.GetComponent<Card>();
 
-        // Kartı bölgenin card slot pozisyonuna yerleştir
+        // Karti bolgenin card slot pozisyonuna yerlestir
         if (cardSlot != null)
         {
             cardCopy.transform.position = cardSlot.position;
@@ -156,12 +227,6 @@ public class Zone : MonoBehaviour
         }
         
         cardCopy.transform.localScale = card.transform.localScale;
-
-        //DraggableCard draggable = cardCopy.GetComponent<DraggableCard>();
-        //if (draggable != null)
-        //{
-        //    Destroy(draggable);
-        //}
 
         placedCard = cardCopyScript;
         ApplyCardBuff(cardCopyScript.cardColor);
@@ -175,16 +240,24 @@ public class Zone : MonoBehaviour
             SoundManager.Instance.PlayCardPlace();
         }
         
-        // KART İSMİ GÖSTERGESİ EKLE - YENİ! (Opsiyonel)
+        // KART ISMI GOSTERGESI EKLE - YENI! (Opsiyonel)
         CreateCardLabel(cardCopyScript.cardColor);
+        
+        // HIGHLIGHT'I AKTIF ET - KART RENGIYLE!
+        if (neonHighlight != null)
+        {
+            Color cardColor = GetCardColorForHighlight(cardCopyScript.cardColor);
+            neonHighlight.SetHighlight(true, cardColor);
+            Debug.Log($"Zone {zoneIndex} - Kart yerlestirildi, highlight aktif: {cardCopyScript.cardColor}");
+        }
 
         return true;
     }
     
-    // Kart label'ı oluştur
+    // Kart label'i olustur
     void CreateCardLabel(Card.CardColor color)
     {
-        // TextMeshPro ile kart ismi göster
+        // TextMeshPro ile kart ismi goster
         GameObject labelObj = new GameObject("CardLabel");
         labelObj.transform.SetParent(placedCard.transform);
         labelObj.transform.localPosition = new Vector3(0, 0.7f, 0);
@@ -196,7 +269,7 @@ public class Zone : MonoBehaviour
         textMesh.anchor = TextAnchor.MiddleCenter;
         textMesh.alignment = TextAlignment.Center;
     
-        // Karakteri kameraya baktır
+        // Karakteri kameraya baktir
         textMesh.transform.localScale = new Vector3(0.1f, 0.1f, 1f);
     }
 
@@ -229,22 +302,22 @@ public class Zone : MonoBehaviour
                 break;
             case Card.CardColor.Green:
                 hasHealBuff = true;
-                Debug.Log("Zone " + zoneIndex + " - Yeşil buff aktif!");
+                Debug.Log("Zone " + zoneIndex + " - Yesil buff aktif!");
                 break;
             case Card.CardColor.Red:
                 hasTurretBuff = true;
                 turretTimer = 0f;
-                Debug.Log("Zone " + zoneIndex + " - Kırmızı buff aktif!");
+                Debug.Log("Zone " + zoneIndex + " - Kirmizi buff aktif!");
                 break;
             case Card.CardColor.Yellow:
                 hasLightningBuff = true;
                 lightningTimer = 0f;
-                Debug.Log("Zone " + zoneIndex + " - Sarı buff aktif!");
+                Debug.Log("Zone " + zoneIndex + " - Sari buff aktif!");
                 break;
         }
     }
     
-    // Buff'ı kaldır
+    // Buff'i kaldir
     public void RemoveBuff()
     {
         hasSlowBuff = false;
@@ -253,21 +326,27 @@ public class Zone : MonoBehaviour
         hasLightningBuff = false;
     }
     
-    // Kartı kaldır
+    // Karti kaldir
     public void RemoveCard()
     {
         placedCard = null;
         hasActiveCard = false;
         cardTimer = 0f;
         RemoveBuff();
+        
+        // HIGHLIGHT'I KAPAT!
+        if (neonHighlight != null)
+        {
+            neonHighlight.ResetToIdle();
+        }
     }
     
-    // Kart süresi doldu
+    // Kart suresi doldu
     void ExpireCard()
     {
         if (placedCard != null)
         {
-            Debug.Log($"Zone {zoneIndex} - Kart süresi doldu!");
+            Debug.Log($"Zone {zoneIndex} - Kart suresi doldu!");
             Destroy(placedCard.gameObject);
             RemoveCard();
         }
@@ -290,7 +369,7 @@ public class Zone : MonoBehaviour
         }
     }
     
-    // Turret güncelleme
+    // Turret guncelleme
     void TurretUpdate()
     {
         turretTimer += Time.deltaTime;
@@ -302,7 +381,7 @@ public class Zone : MonoBehaviour
         }
     }
     
-    // Turret ateş et
+    // Turret ates et
     void TurretFire()
     {
         Enemy target = FindClosestEnemyInZone();
@@ -329,21 +408,21 @@ public class Zone : MonoBehaviour
             {
                 projectileScript.target = target.transform;
     
-                // TURRET HASARINI HESAPLA - YENİ!
+                // TURRET HASARINI HESAPLA
                 int turretDamage = CalculateTurretDamage();
                 projectileScript.damage = turretDamage;
     
-                Debug.Log($"🔴 Turret ateş etti! Hasar: {turretDamage}");
+                Debug.Log($"Turret ates etti! Hasar: {turretDamage}");
             }
         }
     }
     
-    // Turret hasarını hesapla (upgrade dahil)
+    // Turret hasarini hesapla (upgrade dahil)
     int CalculateTurretDamage()
     {
-        int baseDamage = 25; // Base turret hasarı
+        int baseDamage = 25; // Base turret hasari
     
-        // Upgrade var mı kontrol et
+        // Upgrade var mi kontrol et
         if (UpgradeManager.Instance != null)
         {
             baseDamage = Mathf.RoundToInt(baseDamage * UpgradeManager.Instance.turretDamageMultiplier);
@@ -352,7 +431,7 @@ public class Zone : MonoBehaviour
         return baseDamage;
     }
     
-    // Bu bölgedeki en yakın düşmanı bul
+    // Bu bolgedeki en yakin dusmani bul
     Enemy FindClosestEnemyInZone()
     {
         if (placedCard == null) return null;
@@ -363,7 +442,7 @@ public class Zone : MonoBehaviour
         
         foreach (Enemy enemy in enemies)
         {
-            // Aynı bölgede mi?
+            // Ayni bolgede mi?
             if (enemy.zoneIndex == zoneIndex)
             {
                 float distance = Vector3.Distance(placedCard.transform.position, enemy.transform.position);
@@ -378,7 +457,7 @@ public class Zone : MonoBehaviour
         return closest;
     }
     
-    // Lightning güncelleme
+    // Lightning guncelleme
     void LightningUpdate()
     {
         lightningTimer += Time.deltaTime;
@@ -390,8 +469,8 @@ public class Zone : MonoBehaviour
         }
     }
     
-    // Lightning ateş et (en uzaktaki düşmana)
-    // Lightning ateş et (Chain Lightning)
+    // Lightning ates et (en uzaktaki dusmana)
+    // Lightning ates et (Chain Lightning)
     void LightningFire()
     {
         Enemy target = FindFarthestEnemyInZone();
@@ -407,7 +486,7 @@ public class Zone : MonoBehaviour
                 HitEffectManager.Instance.ShowMuzzleFlash(lightningPos, direction, Color.yellow);
             }
         
-            // CHAIN LIGHTNING PROJECTILE - YENİ!
+            // CHAIN LIGHTNING PROJECTILE
             GameObject projectile = Instantiate(chainLightningProjectilePrefab, lightningPos, Quaternion.identity);
             ChainLightningProjectile projectileScript = projectile.GetComponent<ChainLightningProjectile>();
         
@@ -416,11 +495,11 @@ public class Zone : MonoBehaviour
                 projectileScript.Initialize(target.transform, zoneIndex);
             }
         
-            Debug.Log($"⚡ Chain Lightning başladı! (Zone {zoneIndex}) → {target.gameObject.name}");
+            Debug.Log($"Chain Lightning basladi! (Zone {zoneIndex}) -> {target.gameObject.name}");
         }
     }
 
-// Bu bölgedeki en uzaktaki düşmanı bul
+// Bu bolgedeki en uzaktaki dusmani bul
     Enemy FindFarthestEnemyInZone()
     {
         if (placedCard == null) return null;
@@ -433,7 +512,7 @@ public class Zone : MonoBehaviour
     
         foreach (Enemy enemy in enemies)
         {
-            // Aynı bölgede mi?
+            // Ayni bolgede mi?
             if (enemy.zoneIndex == zoneIndex)
             {
                 float distanceFromCenter = Vector3.Distance(center, enemy.transform.position);

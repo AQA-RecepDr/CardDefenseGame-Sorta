@@ -10,7 +10,7 @@ public class CardPlacementManager : MonoBehaviour
     public CardManager cardManager;
     
     [Header("Ayarlar")]
-    public LayerMask zoneLayer; // Zone'ların layer'ı
+    public LayerMask zoneLayer; // Zone'larin layer'i
     public float raycastDistance = 100f;
     
     private Camera mainCamera;
@@ -32,32 +32,53 @@ public class CardPlacementManager : MonoBehaviour
     {
         mainCamera = Camera.main;
         
-        // CardManager'ı otomatik bul
+        // CardManager'i otomatik bul
         if (cardManager == null)
         {
             cardManager = FindObjectOfType<CardManager>();
         }
-        
     }
     
     void Update()
     {
-        // Mouse'un altındaki zone'u bul
+        // Mouse'un altindaki zone'u bul
         Zone hoveredZone = GetZoneUnderMouse();
-        
-        // Önceki zone'u kapat
+    
+        // Suruklenen karti bul
+        Card draggedCard = GetDraggedCard();
+    
+        // Onceki zone'un highlight'ini kapat
         if (currentHoveredZone != null && currentHoveredZone != hoveredZone)
         {
-            currentHoveredZone.Highlight(false);
+            NeonZoneHighlight prevHighlight = currentHoveredZone.GetComponent<NeonZoneHighlight>();
+            if (prevHighlight != null)
+            {
+                prevHighlight.SetHighlight(false);
+            }
         }
-        
+    
         // Yeni zone'u highlight et
         if (hoveredZone != null)
         {
-            hoveredZone.Highlight(true);
-            currentHoveredZone = hoveredZone;
+            NeonZoneHighlight highlight = hoveredZone.GetComponent<NeonZoneHighlight>();
             
-           // Hotkey kontrolü
+            if (highlight != null)
+            {
+                // Eger kart surukleniyorsa renk ver, yoksa beyaz
+                if (draggedCard != null)
+                {
+                    Color cardColor = GetCardColor(draggedCard);
+                    highlight.SetHighlight(true, cardColor);
+                }
+                else
+                {
+                    highlight.SetHighlight(true); // Varsayilan hover rengi
+                }
+            }
+        
+            currentHoveredZone = hoveredZone;
+        
+            // Hotkey kontrolu
             CheckHotkeys(hoveredZone);
         }
         else
@@ -65,8 +86,49 @@ public class CardPlacementManager : MonoBehaviour
             currentHoveredZone = null;
         }
     }
+    
+    // Suruklenen karti bul
+    Card GetDraggedCard()
+    {
+        DraggableCard[] allDraggable = FindObjectsOfType<DraggableCard>();
+    
+        foreach (DraggableCard draggable in allDraggable)
+        {
+            if (draggable == null) continue; // NULL CHECK
+        
+            // isDragging artik public, direkt kontrol et!
+            if (draggable.isDragging)
+            {
+                return draggable.GetComponent<Card>();
+            }
+        }
+    
+        return null;
+    }
+    
+    // Kart rengini Unity Color'a cevir
+    Color GetCardColor(Card card)
+    {
+        switch (card.cardColor)
+        {
+            case Card.CardColor.Red:
+                return new Color(1f, 0.2f, 0.2f);
+            case Card.CardColor.Blue:
+                return new Color(0.2f, 0.5f, 1f);
+            case Card.CardColor.Green:
+                return new Color(0.2f, 1f, 0.4f);
+            case Card.CardColor.Yellow:
+                return new Color(1f, 1f, 0.2f);
+            case Card.CardColor.Purple:
+                return new Color(0.8f, 0.2f, 1f);
+            case Card.CardColor.Orange:
+                return new Color(1f, 0.6f, 0f);
+            default:
+                return Color.white;
+        }
+    }
 
-    // Mouse'un altındaki zone'u bul (açı bazlı)
+    // Mouse'un altindaki zone'u bul (aci bazli)
 Zone GetZoneUnderMouse()
 {
     // Mouse pozisyonu (world space)
@@ -76,29 +138,29 @@ Zone GetZoneUnderMouse()
     // Player pozisyonu (merkez)
     Vector3 playerPos = Vector3.zero;
     
-    // Mouse'un player'a göre yönünü hesapla
+    // Mouse'un player'a gore yonunu hesapla
     Vector3 direction = mousePos - playerPos;
     
-    // Açıyı hesapla (-180 ile 180 arası)
+    // Aciyi hesapla (-180 ile 180 arasi)
     float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
     
-    // Açıyı 0-360 aralığına çevir
+    // Aciyi 0-360 araligina cevir
     if (angle < 0) angle += 360f;
     
-    // Açıya göre zone belirle
+    // Aciya gore zone belirle
     Zone targetZone = GetZoneByAngle(angle);
     
     return targetZone;
 }
 
-// Açıya göre zone'u belirle
+// Aciya gore zone'u belirle
 Zone GetZoneByAngle(float angle)
 {
-    // 4 yön, her biri 90° alan kaplar
-    // Right: 315° - 45° (0° etrafında)
-    // Top: 45° - 135° (90° etrafında)
-    // Left: 135° - 225° (180° etrafında)
-    // Bottom: 225° - 315° (270° etrafında)
+    // 4 yon, her biri 90 derece alan kaplar
+    // Right: 315 - 45 (0 etrafinda)
+    // Top: 45 - 135 (90 etrafinda)
+    // Left: 135 - 225 (180 etrafinda)
+    // Bottom: 225 - 315 (270 etrafinda)
     
     Zone[] allZones = FindObjectsOfType<Zone>();
     
@@ -106,7 +168,7 @@ Zone GetZoneByAngle(float angle)
     {
         if (zone.direction == Zone.ZoneDirection.Right)
         {
-            // Sağ: 315° - 45° (0° merkezli)
+            // Sag: 315 - 45 (0 merkezli)
             if (angle >= 315f || angle < 45f)
             {
                 return zone;
@@ -114,7 +176,7 @@ Zone GetZoneByAngle(float angle)
         }
         else if (zone.direction == Zone.ZoneDirection.Top)
         {
-            // Üst: 45° - 135° (90° merkezli)
+            // Ust: 45 - 135 (90 merkezli)
             if (angle >= 45f && angle < 135f)
             {
                 return zone;
@@ -122,7 +184,7 @@ Zone GetZoneByAngle(float angle)
         }
         else if (zone.direction == Zone.ZoneDirection.Left)
         {
-            // Sol: 135° - 225° (180° merkezli)
+            // Sol: 135 - 225 (180 merkezli)
             if (angle >= 135f && angle < 225f)
             {
                 return zone;
@@ -130,7 +192,7 @@ Zone GetZoneByAngle(float angle)
         }
         else if (zone.direction == Zone.ZoneDirection.Bottom)
         {
-            // Alt: 225° - 315° (270° merkezli)
+            // Alt: 225 - 315 (270 merkezli)
             if (angle >= 225f && angle < 315f)
             {
                 return zone;
@@ -141,38 +203,38 @@ Zone GetZoneByAngle(float angle)
     return null;
 }
     
-    // Hotkey kontrolü
+    // Hotkey kontrolu
     void CheckHotkeys(Zone zone)
     {
-        // 1 tuşu - İlk kart
+        // 1 tusu - Ilk kart
         if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
             PlaceCardToZone(zone, 0);
         }
-        // 2 tuşu - İkinci kart
+        // 2 tusu - Ikinci kart
         else if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
         {
             PlaceCardToZone(zone, 1);
         }
-        // 3 tuşu - Üçüncü kart
+        // 3 tusu - Ucuncu kart
         else if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
         {
             PlaceCardToZone(zone, 2);
         }
-        // 4 tuşu - Dördüncü kart
+        // 4 tusu - Dorduncu kart
         else if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
         {
             PlaceCardToZone(zone, 3);
         }
     }
     
-    // Kartı zone'a yerleştir
+    // Karti zone'a yerlestir
     void PlaceCardToZone(Zone zone, int cardIndex)
     {
-        // CardManager'dan kartı al
+        // CardManager'dan karti al
         if (cardManager == null || cardManager.handCards == null)
         {
-            Debug.LogWarning(" CardManager veya kartlar yok!");
+            Debug.LogWarning("CardManager veya kartlar yok!");
             return;
         }
         
@@ -183,10 +245,10 @@ Zone GetZoneByAngle(float angle)
             Destroy(hotkeyText.gameObject);
         }
 
-        // Kart indeksi geçerli mi?
+        // Kart indeksi gecerli mi?
         if (cardIndex < 0 || cardIndex >= cardManager.handCards.Count)
         {
-            Debug.LogWarning($" Kart {cardIndex + 1} elde yok!");
+            Debug.LogWarning($"Kart {cardIndex + 1} elde yok!");
             return;
         }
         
@@ -198,33 +260,33 @@ Zone GetZoneByAngle(float angle)
             return;
         }
         
-        // Kart cooldown'da mı?
+        // Kart cooldown'da mi?
         if (card.isPlaceOnCooldown)
         {
-            Debug.LogWarning($" {card.cardColor} cooldown'da!");
+            Debug.LogWarning($"{card.cardColor} cooldown'da!");
             
             StartCoroutine(FlashCard(card));
             return;
         }
         
-        // Zone'a yerleştirmeyi dene
+        // Zone'a yerlestirmeyi dene
         bool placed = zone.TryPlaceCard(card);
         
         if (placed)
         {
-            // SES EFEKTİ - YENİ! ✅
+            // SES EFEKTI
             if (SoundManager.Instance != null)
             {
                 SoundManager.Instance.PlayCardPlace();
             }
-            Debug.Log($"✅ {card.cardColor} kart Zone {zone.zoneIndex}'a yerleştirildi! (Hotkey: {cardIndex + 1})");
+            Debug.Log($"✅ {card.cardColor} kart Zone {zone.zoneIndex}'a yerlestirildi! (Hotkey: {cardIndex + 1})");
         }
         else
         {
-            Debug.LogWarning($" {card.cardColor} kart yerleştirilemedi!");
+            Debug.LogWarning($"{card.cardColor} kart yerlestirilemedi!");
         }
         
-        // COROUTINE EKLE - CLASS İÇİNE! ✅
+        // COROUTINE EKLE
         IEnumerator FlashCard(Card card)
         {
             SpriteRenderer sr = card.GetComponent<SpriteRenderer>();
@@ -232,7 +294,7 @@ Zone GetZoneByAngle(float angle)
     
             Color original = sr.color;
     
-            // Kırmızı flash
+            // Kirmizi flash
             sr.color = Color.red;
             yield return new WaitForSeconds(0.1f);
             sr.color = original;
