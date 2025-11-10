@@ -2832,8 +2832,8 @@ MonoBehaviour:
   triangleHeight: 5
   flipVertically: 1
   rotationAngle: 0
-  lineWidth: 0.15
-  glowWidth: 0.35
+  lineWidth: 0.1
+  glowWidth: 0.25
   idleColor: {r: 0.3, g: 0.3, b: 0.5, a: 0.3}
   hoverColor: {r: 1, g: 1, b: 1, a: 0.8}
   transitionSpeed: 8
@@ -3978,8 +3978,8 @@ MonoBehaviour:
   triangleHeight: 1
   flipVertically: 0
   rotationAngle: 90
-  lineWidth: 0.15
-  glowWidth: 0.35
+  lineWidth: 0.1
+  glowWidth: 0.25
   idleColor: {r: 0.3, g: 0.3, b: 0.5, a: 0.3}
   hoverColor: {r: 1, g: 1, b: 1, a: 0.8}
   transitionSpeed: 8
@@ -10340,8 +10340,8 @@ MonoBehaviour:
   triangleHeight: 5
   flipVertically: 0
   rotationAngle: 0
-  lineWidth: 0.15
-  glowWidth: 0.35
+  lineWidth: 0.1
+  glowWidth: 0.25
   idleColor: {r: 0.3, g: 0.3, b: 0.5, a: 0.3}
   hoverColor: {r: 1, g: 1, b: 1, a: 0.8}
   transitionSpeed: 8
@@ -16611,8 +16611,8 @@ MonoBehaviour:
   triangleHeight: 1
   flipVertically: 0
   rotationAngle: -90
-  lineWidth: 0.15
-  glowWidth: 0.35
+  lineWidth: 0.1
+  glowWidth: 0.25
   idleColor: {r: 0.3, g: 0.3, b: 0.5, a: 0.3}
   hoverColor: {r: 1, g: 1, b: 1, a: 0.8}
   transitionSpeed: 8

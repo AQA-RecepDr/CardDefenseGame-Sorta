@@ -61,6 +61,7 @@ public class NeonZoneHighlight : MonoBehaviour
         if (Application.isPlaying && borderLine != null)
         {
             RefreshShape();
+            RefreshLineWidths();
         }
     }
     
@@ -80,8 +81,29 @@ public class NeonZoneHighlight : MonoBehaviour
             fillRenderer.transform.localRotation = Quaternion.Euler(0, 0, rotationAngle);
     }
     
+    void RefreshLineWidths()
+    {
+        if (borderLine != null)
+        {
+            borderLine.startWidth = lineWidth;
+            borderLine.endWidth = lineWidth;
+        }
+        
+        if (glowLine != null)
+        {
+            glowLine.startWidth = glowWidth;
+            glowLine.endWidth = glowWidth;
+        }
+    }
+    
     void Update()
     {
+        // Line width değişikliklerini kontrol et
+        if (borderLine != null && (borderLine.startWidth != lineWidth))
+        {
+            RefreshLineWidths();
+        }
+        
         // Renk transition
         if (currentColor != targetColor)
         {
