@@ -65,7 +65,7 @@ public class UltiProjectile : MonoBehaviour
             
             float distance = Vector3.Distance(transform.position, enemy.transform.position);
             
-            if (distance < 0.5f)
+            if (distance < 1.5f)
             {
                 // GÜÇLÜ HASAR VER! 💥
                 enemy.TakePlayerDamage(damage);

@@ -156,7 +156,7 @@ public class NeonZoneHighlight : MonoBehaviour
         borderObj.transform.localRotation = Quaternion.Euler(0, 0, rotationAngle);
         
         borderLine = borderObj.AddComponent<LineRenderer>();
-        SetupLineRenderer(borderLine, lineWidth, 10); // Sorting order 10
+        SetupLineRenderer(borderLine, lineWidth, -1); // Sorting order 10
         
         // 2) GLOW LINE (glow efekti)
         GameObject glowObj = new GameObject("NeonGlow");
@@ -165,7 +165,7 @@ public class NeonZoneHighlight : MonoBehaviour
         glowObj.transform.localRotation = Quaternion.Euler(0, 0, rotationAngle);
         
         glowLine = glowObj.AddComponent<LineRenderer>();
-        SetupLineRenderer(glowLine, glowWidth, 9); // Arkada
+        SetupLineRenderer(glowLine, glowWidth, -2); // Arkada
         
         // 3) FILL (iç dolgu)
         if (showFill)
@@ -177,7 +177,7 @@ public class NeonZoneHighlight : MonoBehaviour
             
             fillRenderer = fillObj.AddComponent<SpriteRenderer>();
             fillRenderer.sprite = CreateSimpleSprite();
-            fillRenderer.sortingOrder = 8; // En arkada
+            fillRenderer.sortingOrder = -3; // En arkada
             
             // Scale'i zone size'a göre ayarla
             if (isTriangle)

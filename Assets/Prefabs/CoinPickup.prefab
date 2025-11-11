@@ -100,10 +100,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   coinValue: 1
   lifetime: 15
+  showTrailWhenPulled: 1
   fallSpeed: 0.2
   isBeingPulled: 0
   pullSpeed: 10
   autoCollectDistance: 3
+  momentumDecay: 0.99
 --- !u!58 &5726592395803534450
 CircleCollider2D:
   m_ObjectHideFlags: 0

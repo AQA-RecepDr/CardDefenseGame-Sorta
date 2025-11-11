@@ -158,15 +158,15 @@ public class CardManager : MonoBehaviour
     
         // YAN YANA DİZİLİM - YENİ!
         int totalCards = availableCards.Length;
-        float spacing = 1.5f; // Daha geniş aralık (1.0 → 1.5)
+        float spacing = 3f; // Daha geniş aralık (1.0 → 1.5)
         float totalWidth = (totalCards - 1) * spacing;
         float startX = -totalWidth / 2f;
         float x = startX + (index * spacing);
     
         // Y pozisyonu sabit (altta)
         cardObj.transform.localPosition = new Vector3(x, 0, 0);
-    
-        // Z pozisyonu ayarla (üst üste gelmesin)
+        
+       // Z pozisyonu ayarla (üst üste gelmesin)
         Vector3 pos = cardObj.transform.localPosition;
         pos.z = 0; // Hepsi aynı z'de
         cardObj.transform.localPosition = pos;
@@ -231,7 +231,7 @@ public class CardManager : MonoBehaviour
         Card card = handCards[index];
         if (card == null) return;
     
-        float spacing = 1.5f;
+        float spacing = 3f;
         float totalWidth = (totalCards - 1) * spacing;
         float startX = -totalWidth / 2f;
         float x = startX + (index * spacing);

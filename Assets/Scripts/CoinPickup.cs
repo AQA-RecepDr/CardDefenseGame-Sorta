@@ -25,6 +25,9 @@ public class CoinPickup : MonoBehaviour
     public float autoCollectDistance = 1.5f; // Bu mesafeden yakınsa otomatik topla
     private Transform playerTransform;
     
+    private Vector3 velocity = Vector3.zero; // Coin'in mevcut hızı
+    public float momentumDecay = 0.92f; // Her frame hızı azalt (0.92 = %8 yavaşlama)
+    
     void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -109,11 +112,17 @@ public class CoinPickup : MonoBehaviour
         float currentDistance = Vector3.Distance(transform.position, targetPosition);
         float speedMultiplier = Mathf.Lerp(1f, 3f, 1f - (currentDistance / 10f)); // Yaklaştıkça hızlanır
         
+        // ÖNCEKİ POZİSYONU SAKLA
+        Vector3 oldPosition = transform.position;
+        
         transform.position = Vector3.MoveTowards(
             transform.position, 
             targetPosition, 
             pullSpeed * speedMultiplier * Time.deltaTime
         );
+        
+        // VELOCITY HESAPLA!
+        velocity = (transform.position - oldPosition) / Time.deltaTime;
         
         // Trail aktif
         if (trail != null) trail.emitting = true;
@@ -138,11 +147,27 @@ public class CoinPickup : MonoBehaviour
     }
     else
     {
-        // Normal düşme
-        transform.position += Vector3.down * fallSpeed * Time.deltaTime;
+        // MOMENTUM VAR MI? 👇
+        if (velocity.magnitude > 0.1f) // Hala momentum varsa
+        {
+            // Momentum'u uygula
+            transform.position += velocity * Time.deltaTime;
         
-        // Trail kapalı
-        if (trail != null) trail.emitting = false;
+            // Her frame momentum'u azalt (sürtünme)
+            velocity *= momentumDecay;
+        
+            // Trail aktif tut (momentum varken)
+            if (trail != null) trail.emitting = true;
+        }
+        else
+        {
+            // Momentum bitti, normal düşme
+            velocity = Vector3.zero;
+            transform.position += Vector3.down * fallSpeed * Time.deltaTime;
+        
+            // Trail kapalı
+            if (trail != null) trail.emitting = false;
+        }
         
         // Sparkle kapalı
         if (sparkles != null)
