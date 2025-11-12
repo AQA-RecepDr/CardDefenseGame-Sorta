@@ -22,6 +22,15 @@ public class Zone : MonoBehaviour
     public Card placedCard; // Bu bolgeye yerlestirilmis kart
     public Transform cardSlot; // Kartin duracagi pozisyon
     
+    [Header("Card Formation - Visual")]
+    public GameObject cardFormationPrefab; // Prefab (opsiyonel)
+    private GameObject activeFormation; // Spawn edilmiş formation
+    
+    [Header("Formation Position")]
+    public float formationDistance = 0.8f; // Karaktere mesafe (küçült = yakınlaş)
+    public Vector2 formationSize = new Vector2(1.5f, 2f); // Diamond boyutu
+    public Sprite formationSprite;
+    
     [Header("Highlight")]
     public bool isHighlighted = false;
     public GameObject highlightVisual;
@@ -130,6 +139,9 @@ public class Zone : MonoBehaviour
             // KART AKTIFKEN HIGHLIGHT'I KORU!
             UpdateCardHighlight();
             
+            // FORMATION'U GÜNCELLE
+            UpdateFormationPosition();
+            
             if (cardTimer <= 0)
             {
                 ExpireCard();
@@ -198,6 +210,8 @@ public class Zone : MonoBehaviour
             {
                 neonHighlight.ResetToIdle();
             }
+            
+            DestroyFormation();
         }
     }
     
@@ -231,6 +245,13 @@ public class Zone : MonoBehaviour
         placedCard = cardCopyScript;
         ApplyCardBuff(cardCopyScript.cardColor);
         
+        // KARTI GİZLE - YENİ! 👻
+        SpriteRenderer cardRenderer = cardCopy.GetComponent<SpriteRenderer>();
+        if (cardRenderer != null)
+        {
+            cardRenderer.enabled = false; // Kartı görünmez yap
+        }
+        
         hasActiveCard = true;
         cardTimer = cardDuration;
         
@@ -241,7 +262,9 @@ public class Zone : MonoBehaviour
         }
         
         // KART ISMI GOSTERGESI EKLE - YENI! (Opsiyonel)
-        CreateCardLabel(cardCopyScript.cardColor);
+        //CreateCardLabel(cardCopyScript.cardColor);
+        
+        CreateCardFormation(cardCopyScript.cardColor);
         
         // HIGHLIGHT'I AKTIF ET - KART RENGIYLE!
         if (neonHighlight != null)
@@ -339,6 +362,7 @@ public class Zone : MonoBehaviour
         {
             neonHighlight.ResetToIdle();
         }
+        DestroyFormation();
     }
     
     // Kart suresi doldu
@@ -349,6 +373,7 @@ public class Zone : MonoBehaviour
             Debug.Log($"Zone {zoneIndex} - Kart suresi doldu!");
             Destroy(placedCard.gameObject);
             RemoveCard();
+            DestroyFormation();
         }
     }
     
@@ -527,4 +552,134 @@ public class Zone : MonoBehaviour
         return farthest;
     }
     
+    // Card formation oluştur (visual diamond)
+void CreateCardFormation(Card.CardColor cardColor)
+{
+    // Formation objesi oluştur
+    GameObject formationObj = new GameObject("CardFormation");
+    formationObj.transform.SetParent(transform);
+    
+    // Pozisyon: Karaktere yakın
+    Vector3 formationPos = GetFormationPosition();
+    formationObj.transform.position = formationPos;
+    
+    // CardFormation component ekle
+    CardFormation formation = formationObj.AddComponent<CardFormation>();
+    
+    // Renk ayarla
+    formation.formationColor = GetCardColorForFormation(cardColor);
+    
+    formation.diamondSize = formationSize;
+    formation.customSprite = formationSprite;
+    
+    // Referansı sakla
+    activeFormation = formationObj;
+}
+
+// Formation pozisyonu (karaktere yakın)
+Vector3 GetFormationPosition()
+{
+    // Merkez (karakter) pozisyonu
+    Vector3 center = Vector3.zero;
+    
+    // Zone yönüne göre offset
+    switch (direction)
+    {
+        case ZoneDirection.Top:
+            return center + Vector3.up * formationDistance; // ← DİNAMİK!
+        case ZoneDirection.Right:
+            return center + Vector3.right * formationDistance;
+        case ZoneDirection.Bottom:
+            return center + Vector3.down * formationDistance;
+        case ZoneDirection.Left:
+            return center + Vector3.left * formationDistance;
+        default:
+            return center;
+    }
+}
+
+// Formation rotation (zone yönü)
+float GetFormationRotation()
+{
+    switch (direction)
+    {
+        case ZoneDirection.Top:
+            return 45f; // Yukarı bakan diamond
+        case ZoneDirection.Right:
+            return 135f; // Sağa bakan
+        case ZoneDirection.Bottom:
+            return 225f; // Aşağı bakan
+        case ZoneDirection.Left:
+            return 315f; // Sola bakan
+        default:
+            return 45f;
+    }
+}
+
+    // Kart rengini formation color'a çevir
+    Color GetCardColorForFormation(Card.CardColor cardColor)
+    { 
+        switch (cardColor)
+        {
+        case Card.CardColor.Red:
+            return new Color(1f, 0.2f, 0.2f, 0.8f);
+        case Card.CardColor.Blue:
+            return new Color(0.2f, 0.5f, 1f, 0.8f);
+        case Card.CardColor.Green:
+            return new Color(0.2f, 1f, 0.4f, 0.8f);
+        case Card.CardColor.Yellow:
+            return new Color(1f, 1f, 0.2f, 0.8f);
+        default:
+            return Color.white;
+        }
+    }
+
+    // Formation'u yok et (animasyonlu)
+    void DestroyFormation()
+    {
+        if (activeFormation != null) 
+        {
+            CardFormation formation = activeFormation.GetComponent<CardFormation>();
+            if (formation != null)
+            {
+                formation.PlayDespawnAnimation(); // Animasyonlu yok olma
+            }
+            else
+            {
+                Destroy(activeFormation); // Direkt yok ol
+            }
+        
+            activeFormation = null;
+        }
+    }
+    
+    // Formation pozisyon/boyutunu güncelle (Inspector değişikliklerini uygula)
+    void UpdateFormationPosition()
+    {
+        if (activeFormation != null)
+        {
+            // Pozisyonu güncelle
+            activeFormation.transform.position = GetFormationPosition();
+        
+            // Boyutu güncelle
+            CardFormation formation = activeFormation.GetComponent<CardFormation>();
+            if (formation != null)
+            {
+                formation.diamondSize = formationSize;
+                // Scale'i hemen uygula
+                activeFormation.transform.localScale = new Vector3(formationSize.x, formationSize.y, 1f);
+            }
+        }
+    }
+    
+    // Inspector'da değer değişince çağrılır
+    void OnValidate()
+    {
+        // Play mode'dayken ve formation varsa güncelle
+        if (Application.isPlaying && activeFormation != null)
+        {
+            UpdateFormationPosition();
+        }
+    }
+
 }

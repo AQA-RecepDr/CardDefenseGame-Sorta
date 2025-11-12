@@ -2662,6 +2662,10 @@ MonoBehaviour:
   lightningFireRate: 2
   placedCard: {fileID: 0}
   cardSlot: {fileID: 598206839}
+  cardFormationPrefab: {fileID: 0}
+  formationDistance: 2
+  formationSize: {x: 1.5, y: 1.5}
+  formationSprite: {fileID: 21300000, guid: 7644ebad5411f104c8223de48b5183d1, type: 3}
   isHighlighted: 0
   highlightVisual: {fileID: 0}
   highlightColor: {r: 1, g: 1, b: 0.5, a: 0.3}
@@ -2931,6 +2935,10 @@ MonoBehaviour:
   lightningFireRate: 2
   placedCard: {fileID: 0}
   cardSlot: {fileID: 103224709}
+  cardFormationPrefab: {fileID: 0}
+  formationDistance: 1.36
+  formationSize: {x: 1.5, y: 1.5}
+  formationSprite: {fileID: 21300000, guid: bef99c6c9ea26b34c9697cec4a610afe, type: 3}
   isHighlighted: 0
   highlightVisual: {fileID: 0}
   highlightColor: {r: 1, g: 1, b: 0.5, a: 0.3}
@@ -5929,7 +5937,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.3, y: 1}
-  m_AnchoredPosition: {x: 5, y: 0}
+  m_AnchoredPosition: {x: 5.0045166, y: 0}
   m_SizeDelta: {x: -10, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &985653789
@@ -7310,6 +7318,10 @@ MonoBehaviour:
   lightningFireRate: 2
   placedCard: {fileID: 0}
   cardSlot: {fileID: 1027381056}
+  cardFormationPrefab: {fileID: 0}
+  formationDistance: 2
+  formationSize: {x: 1.5, y: 1.5}
+  formationSprite: {fileID: 21300000, guid: ea5d5c433be4b30448c80e26bd831629, type: 3}
   isHighlighted: 0
   highlightVisual: {fileID: 0}
   highlightColor: {r: 1, g: 1, b: 0.5, a: 0.3}
@@ -10691,6 +10703,10 @@ MonoBehaviour:
   lightningFireRate: 2
   placedCard: {fileID: 0}
   cardSlot: {fileID: 2102025945}
+  cardFormationPrefab: {fileID: 0}
+  formationDistance: 1.36
+  formationSize: {x: 1.5, y: 1.5}
+  formationSprite: {fileID: 21300000, guid: 5d219d9396f7f8442a16030470f2a86f, type: 3}
   isHighlighted: 0
   highlightVisual: {fileID: 0}
   highlightColor: {r: 1, g: 1, b: 0.5, a: 0.3}
