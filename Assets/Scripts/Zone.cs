@@ -619,12 +619,18 @@ float GetFormationRotation()
     // Kart rengini formation color'a çevir
     Color GetCardColorForFormation(Card.CardColor cardColor)
     { 
+        Color color;
+        
         switch (cardColor)
         {
         case Card.CardColor.Red:
-            return new Color(1f, 0.2f, 0.2f, 0.8f);
+            ColorUtility.TryParseHtmlString("#A0153E", out color);
+            return color;
+            //return new Color(1f, 0.2f, 0.2f, 0.8f) #3E92CC;
         case Card.CardColor.Blue:
-            return new Color(0.2f, 0.5f, 1f, 0.8f);
+            ColorUtility.TryParseHtmlString("#3E92CC", out color);
+            return color;    
+        //return new Color(0.2f, 0.5f, 1f, 0.8f);
         case Card.CardColor.Green:
             return new Color(0.2f, 1f, 0.4f, 0.8f);
         case Card.CardColor.Yellow:

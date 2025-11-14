@@ -41,7 +41,7 @@ public class CoinManager : MonoBehaviour
     {
         currentSessionCoins += amount;
         
-        Debug.Log($"+{amount} coin! Toplam bu oyunda: {currentSessionCoins}");
+        //Debug.Log($"+{amount} coin! Toplam bu oyunda: {currentSessionCoins}");
         
         // UI güncelle (varsa)
         UpdateCoinUI();

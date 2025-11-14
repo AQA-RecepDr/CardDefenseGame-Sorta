@@ -66,14 +66,18 @@ public class Card : MonoBehaviour
     void UpdateVisual()
     {
         if (spriteRenderer == null) return;
+        
+        Color color;
     
         switch (cardColor)
-        {
+        { 
             case CardColor.Red:
-                spriteRenderer.color = new Color(0.93f, 0.27f, 0.27f);
+                ColorUtility.TryParseHtmlString("#A0153E", out color);
+                spriteRenderer.color = color;
                 break;
             case CardColor.Blue:
-                spriteRenderer.color = new Color(0.23f, 0.51f, 0.96f);
+                ColorUtility.TryParseHtmlString("#3E92CC", out color);
+                spriteRenderer.color = color;
                 break;
             case CardColor.Green:
                 spriteRenderer.color = new Color(0.13f, 0.77f, 0.37f);

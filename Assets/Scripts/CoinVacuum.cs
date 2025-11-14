@@ -5,7 +5,7 @@ public class CoinVacuum : MonoBehaviour
     public static CoinVacuum Instance;
     
     [Header("Vacuum Settings")]
-    public float vacuumRange = 50f; // Çok uzak menzil (tüm ekran)
+    public float vacuumRange = 8f; // Çok uzak menzil (tüm ekran)
     public float vacuumWidth = 2f; // Dar çekim alanı
     public bool isVacuumActive = false;
     
@@ -38,6 +38,17 @@ public class CoinVacuum : MonoBehaviour
         {
             isVacuumActive = true;
             ActivateVacuum();
+            
+            // PULSE EFEKTİ - KONİ YAŞIYOR GİBİ! ✨
+            if (vacuumBeam != null && vacuumBeam.enabled)
+            {
+                float pulse = (Mathf.Sin(Time.time * 5f) + 1f) * 0.5f; // 0-1 arası
+                float alpha = Mathf.Lerp(0.1f, 0.2f, pulse); // Hafif pulse
+        
+                Color c = vacuumBeam.startColor;
+                c.a = alpha;
+                vacuumBeam.startColor = c;
+            }
         }
         else
         {
@@ -48,30 +59,36 @@ public class CoinVacuum : MonoBehaviour
     
     void CreateVacuumVisuals()
     {
-        // Vakum beam'i (mouse'a doğru çizgi)
-        GameObject beamObj = new GameObject("VacuumBeam");
+        // Vakum koni efekti
+        GameObject beamObj = new GameObject("VacuumCone");
         beamObj.transform.SetParent(transform, false);
-    
+
         vacuumBeam = beamObj.AddComponent<LineRenderer>();
         vacuumBeam.material = new Material(Shader.Find("Sprites/Default"));
-        vacuumBeam.startWidth = 0.3f;
-        vacuumBeam.endWidth = 0.1f;
+    
+        // KONİ AYARLARI - Başta dar, sonda geniş
+        vacuumBeam.startWidth = 0.2f;  // Karakterden dar başla
+        vacuumBeam.endWidth = 9.0f;    // Dışa doğru genişle
+    
         vacuumBeam.positionCount = 2;
-        vacuumBeam.sortingOrder = 3;
+        vacuumBeam.sortingOrder = -5; // Arkada dursun (karakterin altında)
+
+        // TRANSPARAN SARI - Hafif görünsün
+        Color coneColor = new Color(1f, 0.9f, 0.3f, 0.08f); // Çok transparan
+        vacuumBeam.startColor = coneColor; // Başta hafif görünür
     
-        // Sarı-altın renk
-        Color beamColor = new Color(1f, 0.9f, 0f, 0.5f);
-        vacuumBeam.startColor = beamColor;
-        vacuumBeam.endColor = new Color(beamColor.r, beamColor.g, beamColor.b, 0f);
-    
-        // Glow
+        Color endColor = coneColor;
+        endColor.a = 0f; // Sonda tamamen transparan
+        vacuumBeam.endColor = endColor;
+
+        // Yumuşak blend
         vacuumBeam.material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-        vacuumBeam.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One);
-    
+        vacuumBeam.material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+
         // Başlangıçta kapalı
         vacuumBeam.enabled = false;
-    
-        Debug.Log("✨ Vakum görsel feedback oluşturuldu!");
+
+        Debug.Log("✨ Vakum koni efekti oluşturuldu!");
     }
     
     void ActivateVacuum()
@@ -117,6 +134,7 @@ public class CoinVacuum : MonoBehaviour
         {
             SoundManager.Instance.PlayVacuumLoop();
         }
+        
     }
     
     void DeactivateVacuum()
