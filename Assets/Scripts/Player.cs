@@ -8,6 +8,9 @@ public class Player : MonoBehaviour
     public int maxHealth = 20;
     public int currentHealth;
     private SpriteRenderer spriteRenderer;
+    
+    [Header("Circular Health Bar - YENİ!")]
+    public CircularHealthBar circularHealthBar;
 
     void Start()
     {
@@ -25,10 +28,10 @@ public class Player : MonoBehaviour
         currentHealth = maxHealth;
         spriteRenderer = GetComponent<SpriteRenderer>();
     
-        // UI'yı güncelle
-        if (UIManager.Instance != null)
+        // Circular health bar'ı güncelle - YENİ! 🎯
+        if (circularHealthBar != null)
         {
-            UIManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
+            circularHealthBar.SetHealth(currentHealth, maxHealth);
         }
     }
 
@@ -54,10 +57,10 @@ public class Player : MonoBehaviour
         
         Debug.Log("Oyuncu hasar aldı! Can: " + currentHealth);
         
-        // UI'yı güncelle
-        if (UIManager.Instance != null)
+        // Circular health bar'ı güncelle - YENİ! 🎯
+        if (circularHealthBar != null)
         {
-            UIManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
+            circularHealthBar.SetHealth(currentHealth, maxHealth);
         }
         
         if (currentHealth <= 0)
@@ -95,10 +98,10 @@ public class Player : MonoBehaviour
             currentHealth = maxHealth;
         }
     
-        // UI'yı güncelle
-        if (UIManager.Instance != null)
+        // Circular health bar'ı güncelle - YENİ! 🎯
+        if (circularHealthBar != null)
         {
-            UIManager.Instance.UpdatePlayerHealth(currentHealth, maxHealth);
+            circularHealthBar.SetHealth(currentHealth, maxHealth);
         }
     
         Debug.Log("Can kazanıldı! Can: " + currentHealth);

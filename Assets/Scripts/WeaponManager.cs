@@ -125,6 +125,12 @@ public class WeaponManager : MonoBehaviour
 
     void Update()
     {
+        // OYUN BAŞLAMADIYSA INPUT ALMA! 🚫
+        if (GameManager.Instance != null && !GameManager.Instance.isGameStarted)
+        {
+            return; // Menüdeyken hiçbir şey yapma!
+        }
+        
         // SİLAHI MOUSE YÖNÜNE DÖNDÜR - YENİ!
         RotateWeaponTowardsMouse();
         

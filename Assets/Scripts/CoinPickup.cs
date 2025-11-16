@@ -28,7 +28,7 @@ public class CoinPickup : MonoBehaviour
     private Vector3 velocity = Vector3.zero; // Coin'in mevcut hızı
     public float momentumDecay = 0.92f; // Her frame hızı azalt (0.92 = %8 yavaşlama
 
-    private bool isCollected = false;
+    public bool isCollected = false;
     
     void Start()
     {

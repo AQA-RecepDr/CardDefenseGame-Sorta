@@ -137,11 +137,6 @@ public class UpgradeManager : MonoBehaviour
                 {
                     player.maxHealth += (int)upgrade.value;
                     player.currentHealth += (int)upgrade.value; // Mevcut canı da artır
-                    
-                    if (UIManager.Instance != null)
-                    {
-                        UIManager.Instance.UpdatePlayerHealth(player.currentHealth, player.maxHealth);
-                    }
                 }
                 Debug.Log($"Max can bonusu: +{maxHealthBonus}");
                 break;

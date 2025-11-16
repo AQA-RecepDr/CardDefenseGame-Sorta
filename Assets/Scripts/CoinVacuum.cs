@@ -33,6 +33,12 @@ public class CoinVacuum : MonoBehaviour
     
     void Update()
     {
+        // OYUN BAŞLAMADIYSA VAKUM YAPMA! 🚫
+        if (GameManager.Instance != null && !GameManager.Instance.isGameStarted)
+        {
+            return;
+        }
+        
         // SAÄž TIK BASILI TUTARKEN - Vakum aktif
         if (Input.GetMouseButton(1))
         {

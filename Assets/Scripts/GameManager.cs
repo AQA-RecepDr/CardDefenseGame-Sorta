@@ -9,6 +9,7 @@ public class GameManager : MonoBehaviour
     
     [Header("Oyun Durumu")]
     public bool isGameOver = false;
+    public bool isGameStarted = false;
     
     void Awake()
     {
@@ -102,5 +103,12 @@ public class GameManager : MonoBehaviour
         {
             PermanentUpgradeUI.Instance.OpenPanel();
         }
+    }
+    
+    // Oyunu başlat (MenuManager'dan çağrılır)
+    public void StartGame()
+    {
+        isGameStarted = true;
+        Debug.Log("🎮 GameManager: Oyun başlatıldı! Input aktif.");
     }
 }

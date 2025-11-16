@@ -32,6 +32,12 @@ public class MenuManager : MonoBehaviour
         
         mainMenuPanel.SetActive(false);
         
+        // GAMEMANAGER'A HABER VER! 🎮
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.StartGame();
+        }
+        
         // Oyun objelerini hazırla
         EnableGameObjects();
         

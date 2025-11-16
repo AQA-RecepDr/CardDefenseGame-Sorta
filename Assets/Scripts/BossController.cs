@@ -64,11 +64,25 @@ public class BossController : MonoBehaviour
             SoundManager.Instance.PlayBossMusic();
             SoundManager.Instance.PlayBossSpawn();
         }
+        
+        CreateBossShape();
+        
+        // SIMPLE BOSS HEALTH BAR GÖSTER! 💜
+        if (SimpleBossHealthBar.Instance != null && enemyComponent != null)
+        {
+            SimpleBossHealthBar.Instance.ResetBar(enemyComponent.maxHealth);
+        }
     }
 
     void Update()
     {
         if (enemyComponent == null || enemyComponent.isDestroyed) return;
+        
+        // SIMPLE HEALTH BAR GÜNCELLE! 💜
+        if (SimpleBossHealthBar.Instance != null)
+        {
+            SimpleBossHealthBar.Instance.UpdateHealth(enemyComponent.currentHealth, enemyComponent.maxHealth);
+        }
         
         // İlk kez çalışıyorsa zone seç
         if (!isInitialized && currentState == BossState.Cooldown && cooldownTimer <= 0f)
@@ -364,9 +378,72 @@ public class BossController : MonoBehaviour
         sr.color = originalColor;
     }
     
+    /// <summary>
+    /// Boss için özel geometrik şekil sistemi
+    /// </summary>
+    void CreateBossShape()
+    {
+        // SpriteRenderer'ı gizle (shape kullanacağız)
+        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            sr.enabled = false;
+        }
+        
+        // 1) SHAPE RENDERER - YILDIZ! ⭐
+        EnemyShapeRenderer shapeRenderer = gameObject.AddComponent<EnemyShapeRenderer>();
+        shapeRenderer.shapeType = EnemyShapeRenderer.ShapeType.Star;
+        shapeRenderer.size = 1.0f; // ÇOK BÜYÜK! (Boss!)
+        shapeRenderer.shapeColor = new Color(0.9f, 0.3f, 1f); //Mor
+        shapeRenderer.pulseSpeed = 2.5f;
+        shapeRenderer.glowIntensity = 1.5f; 
+        shapeRenderer.gradientStrength = 0.7f; // Merkez daha koyu! (0.4 → 0.5)
+        shapeRenderer.enableGradient = true;
+        shapeRenderer.enableGlow = true;
+        shapeRenderer.enablePulse = true;
+        
+        Debug.Log("⭐ BOSS SHAPE: Yıldız oluşturuldu!");
+        
+        // 2) ANIMATED CORE - Dönen beşgen! 🔮
+        GameObject coreObj = new GameObject("BossAnimatedCore");
+        coreObj.transform.SetParent(transform);
+        coreObj.transform.localPosition = Vector3.zero;
+        
+        EnemyAnimatedCore core = coreObj.AddComponent<EnemyAnimatedCore>();
+        core.coreType = EnemyAnimatedCore.CoreType.RotatingShape;
+        core.coreShape = EnemyShapeRenderer.ShapeType.Pentagon;
+        core.coreSize = 0.3f; // Biraz küçült (0.4 → 0.35)
+        core.coreColor = new Color(1f, 0.9f, 0.3f); // SARI! (Mor ile kontrast) ⚡
+        core.rotationSpeed = 150f; // Biraz yavaşlat (180 → 150)
+        core.pulseSpeed = 3.5f;
+        core.enablePulse = true;
+        core.glowIntensity = 1.2f; // Daha düşük (2.5 → 1.5)
+        
+        Debug.Log("🔮 BOSS CORE: Dönen beşgen oluşturuldu!");
+        
+        // 3) TRAIL EFFECT - MOR TRAIL! 💨
+        EnemyTrailEffect trailEffect = gameObject.AddComponent<EnemyTrailEffect>();
+        trailEffect.trailColor = new Color(0.9f, 0.3f, 1f, 0.7f); // MOR + biraz şeffaf
+        trailEffect.trailDuration = 0.5f; // Biraz kısalt (0.6 → 0.5)
+        trailEffect.trailStartWidth = 0.5f; // Biraz incelt (0.6 → 0.5)
+        trailEffect.trailEndWidth = 0.1f;
+        trailEffect.glowIntensity = 1.4f; // Daha düşük (3.0 → 1.6)
+        trailEffect.useAdditiveBlend = true;
+        
+        Debug.Log("💨 BOSS TRAIL: Mega trail oluşturuldu!");
+        
+        Debug.Log("🌟 BOSS GÖRSEL SİSTEM TAMAMLANDI! Yıldız + Dönen Core + Mega Trail!");
+    }
+    
     // Boss öldüğünde
     void OnDestroy()
     {
         Debug.Log("👾 BOSS ÖLDÜ!");
+        
+        // SIMPLE HEALTH BAR'I GİZLE! 💜
+        if (SimpleBossHealthBar.Instance != null)
+        {
+            SimpleBossHealthBar.Instance.HideBar();
+        }
     }
 }

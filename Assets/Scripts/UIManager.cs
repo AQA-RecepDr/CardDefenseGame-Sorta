@@ -96,12 +96,6 @@ public class UIManager : MonoBehaviour
             enemyCountText.text = $"Öldürülen: {killed}/{total}\nKalan: {remaining}";
         }
     }
-
-    // Oyuncu canını güncelle
-    public void UpdatePlayerHealth(int current, int max)
-    {
-        playerHealthText.text = "Can: " + current + "/" + max;
-    }
     
     // Kazanma ekranını göster
     public void ShowWinScreen()

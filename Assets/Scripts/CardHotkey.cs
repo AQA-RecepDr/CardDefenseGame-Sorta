@@ -11,6 +11,15 @@ public class CardHotkey : MonoBehaviour
         CreateHotkeyText();
     }
     
+    void Update()
+    {
+        // OYUN BAŞLAMADIYSA KART KULLANMA! 🚫
+        if (GameManager.Instance != null && !GameManager.Instance.isGameStarted)
+        {
+            return;
+        }
+    }
+    
     void CreateHotkeyText()
     {
         // Canvas'ı bul

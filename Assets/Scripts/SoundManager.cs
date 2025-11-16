@@ -16,9 +16,14 @@ public class SoundManager : MonoBehaviour
     public AudioClip ultiSound;
     public AudioClip turretShootSound;
     
-    [Header("Coin Sounds - YENİ! 💰")]
+    [Header("Coin Sounds")]
     public AudioClip coinCollectSound; // Coin toplarken
-    public AudioClip vacuumSound; // Vakum sesi (loop)
+    public AudioClip vacuumSound; // Vakum sesi (loop
+    
+    // COIN PITCH SİSTEMİ
+    private int coinCollectCount = 0; // 1 saniye içinde toplanan coin
+    private float coinCollectTimer = 0f; // Timer
+    private float coinCollectResetTime = 1f; // 1 saniye sonra sıfırla
     
     [Header("Hit Sounds")]
     public AudioClip hitSound;
@@ -79,6 +84,23 @@ public class SoundManager : MonoBehaviour
         }
     }
     
+    void Update()
+    {
+        // Coin pitch timer
+        if (coinCollectCount > 0)
+        {
+            coinCollectTimer += Time.deltaTime;
+            
+            if (coinCollectTimer >= coinCollectResetTime)
+            {
+                // Sıfırla
+                coinCollectCount = 0;
+                coinCollectTimer = 0f;
+                Debug.Log("Coin pitch sıfırlandı");
+            }
+        }
+    }
+    
     // Ses çal (tek seferlik)
     public void PlaySound(AudioClip clip)
     {
@@ -94,6 +116,27 @@ public class SoundManager : MonoBehaviour
         if (clip != null && sfxSource != null)
         {
             sfxSource.PlayOneShot(clip, volumeScale);
+        }
+    }
+    // Ses çal (pitch shifting ile)
+    public void PlaySoundWithPitch(AudioClip clip, float volumeScale = 1f, float pitchMin = 0.9f, float pitchMax = 1.1f)
+    {
+        if (clip != null && sfxSource != null)
+        {
+            // Random pitch değeri
+            float randomPitch = Random.Range(pitchMin, pitchMax);
+            
+            // Geçici AudioSource oluştur (pitch için)
+            GameObject tempGO = new GameObject("TempAudio");
+            AudioSource tempSource = tempGO.AddComponent<AudioSource>();
+            
+            tempSource.clip = clip;
+            tempSource.volume = sfxVolume * volumeScale;
+            tempSource.pitch = randomPitch;
+            tempSource.Play();
+            
+            // Ses bitince yok et
+            Destroy(tempGO, clip.length / randomPitch);
         }
     }
     
@@ -180,19 +223,48 @@ public void StopMusic()
     public void PlayBossDeath() => PlaySound(bossDeathSound, 1.2f); // En yüksek!
     
     // Coin sesleri
-    public void PlayCoinCollect() => PlaySound(coinCollectSound, 0.4f);
+    //public void PlayCoinCollect() => PlaySound(coinCollectSound, 0.4f);
+    
+    public void PlayCoinCollect()
+    {
+        if (coinCollectSound == null || sfxSource == null) return;
+        
+        // Coin sayısını artır
+        coinCollectCount++;
+        coinCollectTimer = 0f; // Timer'ı sıfırla
+        
+        // Pitch hesapla (1 coin = 1.0, 10 coin = 1.9)
+        // Linear interpolation: 1.0 → 1.9 arası
+        float targetPitch = Mathf.Lerp(1.0f, 1.9f, (coinCollectCount - 1) / 9f);
+        targetPitch = Mathf.Clamp(targetPitch, 1.0f, 1.9f); // 10'dan fazla olursa 1.9'da kal
+        
+        // Geçici AudioSource oluştur
+        GameObject tempGO = new GameObject("CoinAudio");
+        AudioSource tempSource = tempGO.AddComponent<AudioSource>();
+        
+        tempSource.clip = coinCollectSound;
+        tempSource.volume = sfxVolume * 0.4f;
+        tempSource.pitch = targetPitch;
+        tempSource.Play();
+        
+        // Ses bitince yok et
+        Destroy(tempGO, coinCollectSound.length / targetPitch);
+        
+        Debug.Log($"🪙 Coin #{coinCollectCount} - Pitch: {targetPitch:F2}");
+    }
     public void PlayVacuumLoop() => PlaySound(vacuumSound, 0.3f);
     
     // Hızlı erişim fonksiyonları
-    public void PlayShoot() => PlaySound(shootSound);
-    public void PlayTripleShoot() => PlaySound(tripleShootSound);
-    public void PlayUlti() => PlaySound(ultiSound, 1.2f); // Daha yüksek
-    public void PlayTurretShoot() => PlaySound(turretShootSound, 0.5f); // Daha alçak
+    // Hızlı erişim fonksiyonları - PITCH SHIFTING İLE! 🎵
+    public void PlayShoot() => PlaySoundWithPitch(shootSound, 1f, 0.85f, 1.15f); //
+    public void PlayTripleShoot() => PlaySoundWithPitch(tripleShootSound, 1f, 0.9f, 1.1f);
+    public void PlayUlti() => PlaySound(ultiSound, 1.2f); // Ulti pitch shifting olmasın (her zaman epic!)
+    public void PlayTurretShoot() => PlaySoundWithPitch(turretShootSound, 0.5f, 0.85f, 1.15f); // Daha fazla varyasyon
     
-    public void PlayHit() => PlaySound(hitSound, 0.6f);
-    public void PlayPierceHit() => PlaySound(pierceHitSound, 0.7f);
-    public void PlayEnemyDeath() => PlaySound(enemyDeathSound);
-    public void PlayBossHit() => PlaySound(bossHitSound, 0.8f);
+    public void PlayHit() => PlaySoundWithPitch(hitSound, 0.6f, 0.9f, 1.1f);
+    public void PlayPierceHit() => PlaySoundWithPitch(pierceHitSound, 0.7f, 0.9f, 1.1f);
+    public void PlayEnemyDeath() => PlaySoundWithPitch(enemyDeathSound, 1f, 0.95f, 1.05f);
+    public void PlayBossHit() => PlaySound(bossHitSound, 0.8f); // Boss pitch shifting olmasın (her zaman güçlü!)
     
     public void PlayChargeFire() => PlaySound(chargeFireSound, 1.0f);
     public void PlayPlayerHurt() => PlaySound(playerHurtSound);
