@@ -51,6 +51,16 @@ public class Zone : MonoBehaviour
     private float lightningTimer = 0f;
     public GameObject lightningProjectilePrefab;
     
+    // POISON BUFF - YENİ! ☠️
+    public bool hasPoisonBuff = false;
+    public float poisonDamagePerSecond = 10f; // Saniyede 10 damage
+    private float poisonTickRate = 0.5f; // 0.5 saniyede bir tick (saniyede 2 tick)
+    private float poisonTimer = 0f;
+    
+    // DEBUFF (ZAYIFLATMA) - YENİ! 💜
+    public bool hasDebuff = false;
+    public float debuffMultiplier = 1.5f; // %50 daha fazla hasar (1.5x)
+    
     // Kart suresi
     public float cardDuration = 30f;
     private float cardTimer = 0f;
@@ -129,6 +139,12 @@ public class Zone : MonoBehaviour
         if (hasLightningBuff)
         {
             LightningUpdate();
+        }
+        
+        // POISON BUFF AKTIFSE - YENİ! ☠️
+        if (hasPoisonBuff)
+        {
+            PoisonUpdate();
         }
         
         // Kart suresi kontrolu
@@ -350,6 +366,17 @@ public class Zone : MonoBehaviour
                 lightningTimer = 0f;
                 Debug.Log("Zone " + zoneIndex + " - Sari buff aktif!");
                 break;
+            case Card.CardColor.Purple:
+                // MOR KART - DEBUFF (Düşmanlar %50 daha fazla hasar alır)
+                hasPoisonBuff = true;
+                Debug.Log($"POISON aktif! Zone {zoneIndex}: Saniyede {poisonDamagePerSecond} damage!");
+                break;
+                
+            case Card.CardColor.Orange:
+                // TURUNCU KART - POISON (Saniyede 10 damage DoT) ☠️
+                hasDebuff = true;
+                Debug.Log($"DEBUFF aktif! Zone {zoneIndex}: Dusmanlar %50 daha fazla hasar alacak!");
+                break;
         }
     }
     
@@ -360,6 +387,8 @@ public class Zone : MonoBehaviour
         hasHealBuff = false;
         hasTurretBuff = false;
         hasLightningBuff = false;
+        hasPoisonBuff = false;
+        hasDebuff = false;
     }
     
     // Karti kaldir
@@ -563,5 +592,43 @@ public class Zone : MonoBehaviour
         }
     
         return farthest;
+    }
+    
+    /// <summary>
+    /// Poison buff - Zone'daki tüm düşmanlara DoT (Damage over Time)
+    /// </summary>
+    void PoisonUpdate()
+    {
+        poisonTimer += Time.deltaTime;
+        
+        if (poisonTimer >= poisonTickRate)
+        {
+            poisonTimer = 0f;
+            
+            // Bu zone'daki tüm düşmanları bul
+            Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+            
+            foreach (Enemy enemy in allEnemies)
+            {
+                // Aynı zone'da mı?
+                if (enemy.zoneIndex == zoneIndex && !enemy.isDestroyed)
+                {
+                    // Poison damage uygula!
+                    float tickDamage = poisonDamagePerSecond * poisonTickRate; // 10 * 0.5 = 5 damage per tick
+                    int damage = Mathf.RoundToInt(tickDamage);
+                    
+                    enemy.TakeDamage(damage, false);
+                    
+                    // Poison efekti göster (yeşil particle)
+                    if (HitEffectManager.Instance != null)
+                    {
+                        HitEffectManager.Instance.ShowHitEffect(
+                            enemy.transform.position, 
+                            new Color(0.2f, 1f, 0.2f) // Yeşil (poison)
+                        );
+                    }
+                }
+            }
+        }
     }
 }

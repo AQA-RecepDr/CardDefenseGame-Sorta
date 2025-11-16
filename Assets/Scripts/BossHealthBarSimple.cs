@@ -141,7 +141,7 @@ public class SimpleBossHealthBar : MonoBehaviour
         
         // 4) HP TEXT (bar'ın ALTINDA - ayrı container) 💬
         GameObject textObj = new GameObject("HPText");
-        textObj.transform.SetParent(barContainer.transform.parent, false); // Container'ın parent'ına ekle!
+        textObj.transform.SetParent(barContainer.transform, false); // Container'ın parent'ına ekle!
         
         RectTransform textRect = textObj.AddComponent<RectTransform>();
         textRect.anchorMin = new Vector2(0.5f, 1f);

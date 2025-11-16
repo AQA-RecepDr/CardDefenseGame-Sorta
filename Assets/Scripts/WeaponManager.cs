@@ -16,7 +16,7 @@ public class WeaponManager : MonoBehaviour
     [Header("Ateş Ayarları")]
     public GameObject primaryProjectilePrefab; // Birincil mermi
     public Transform firePoint; // Merminin çıkış noktası
-    public float basePrimaryFireRate = 0.2f; // Çok hızlı!
+    public float basePrimaryFireRate = 0.6f;
     private float primaryCooldownTimer = 0f;
     
     [Header("Birincil Ateş Özellikleri")]
@@ -26,7 +26,7 @@ public class WeaponManager : MonoBehaviour
     [Header("Ulti - Orbital Burst")]
     public GameObject ultiProjectilePrefab; // Yeni prefab
     public int ultiProjectileCount = 10; // 10 mermi
-    public float ultiCooldown = 12f;
+    public float ultiCooldown = 20f;
     private float ultiCooldownTimer = 0f;
     public bool isUltiReady = false;
     
@@ -164,6 +164,16 @@ public class WeaponManager : MonoBehaviour
                 Debug.Log("⚡ ULTI HAZIR!");
             }
         }
+        
+        // ULTI BAR UI GÜNCELLE! ⚡
+        if (UltiBarUI.Instance != null)
+        {
+            // Doluluk oranı hesapla
+            float currentCooldown = CalculateFinalUltiCooldown();
+            float fillRatio = 1f - Mathf.Clamp01(ultiCooldownTimer / currentCooldown);
+        
+            UltiBarUI.Instance.UpdateUltiFill(fillRatio, isUltiReady);
+        }
     
         if (shakeTimer > 0)
         {
@@ -247,57 +257,6 @@ public class WeaponManager : MonoBehaviour
         return cooldown;
     }
     
-    /* Silahı mouse yönüne döndür
-    void RotateWeaponTowardsMouse()
-    {
-        Vector3 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        mousePos.z = 0;
-    
-        // Silahtan mouse'a yön vektörü
-        Vector3 direction = mousePos - transform.position;
-    
-        // Açıyı hesapla
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-    
-        // Silahı döndür (Z ekseni etrafında)
-        transform.rotation = Quaternion.Euler(0, 0, angle);
-    
-        // TÜM SPRITE'LARI FLIP ET - YENİ! ⚡
-        SpriteRenderer[] allSprites = GetComponentsInChildren<SpriteRenderer>();
-    
-        foreach (SpriteRenderer sr in allSprites)
-        {
-            if (sr != null)
-            {
-                // Sol tarafa bakıyorsa (90° ile 270° arası)
-                if (angle > 90 || angle < -90)
-                {
-                    sr.flipY = true; // Silahı ters çevir
-                }
-                else
-                {
-                    sr.flipY = false; // Normal
-                }
-            }
-        }
-        
-        /*
-        // Eğer silah ters dönerse (sol tarafa bakınca) sprite'ı flip et
-        SpriteRenderer sr = weaponRenderer;
-        if (sr != null)
-        {
-            // Sol tarafa bakıyorsa (90° ile 270° arası)
-            if (angle > 90 || angle < -90)
-            {
-                sr.flipY = true; // Silahı ters çevir
-            }
-            else
-            {
-                sr.flipY = false; // Normal
-            }
-        }
-    }
-    */
     
     void RotateWeaponTowardsMouse()
     {

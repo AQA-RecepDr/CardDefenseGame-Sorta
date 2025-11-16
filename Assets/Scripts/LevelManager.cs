@@ -68,20 +68,7 @@ public class LevelManager : MonoBehaviour
         // İlk level başlarken başlangıç kartlarını ver
         Debug.Log("🎮 LevelManager hazır - Start bekleniyor...");
     }
-    // Oyun başında başlangıç kartlarını ver
-    void GiveStartingCards()
-    {
-        CardManager cardManager = FindObjectOfType<CardManager>();
-        if (cardManager != null)
-        {
-            // Başlangıç kartları: Kırmızı ve Mavi
-            cardManager.AddNewCard(Card.CardColor.Red);
-            cardManager.AddNewCard(Card.CardColor.Blue);
-        
-            Debug.Log("🎴 Başlangıç kartları verildi: Kırmızı");
-        }
-    }
-
+   
     // Level'i yükle
     public void LoadLevel(int levelIndex)
     {

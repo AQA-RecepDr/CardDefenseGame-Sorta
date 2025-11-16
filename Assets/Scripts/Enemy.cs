@@ -475,7 +475,7 @@ public class Enemy : MonoBehaviour
         int actualDamage = damage;
     
         // DEBUFF KONTROL - Turuncu kart varsa %50 fazla hasar!
-        //actualDamage = ApplyDebuffMultiplier(actualDamage);
+        actualDamage = ApplyDebuffMultiplier(actualDamage);
     
         currentHealth -= actualDamage;
         
@@ -1403,5 +1403,30 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
         trailEffect.useAdditiveBlend = true;
         
         Debug.Log($"💨 {enemyType} trail effect oluşturuldu!");
+    }
+    
+    /// <summary>
+    /// Debuff multiplier uygula (mor kart - zone debuff)
+    /// </summary>
+    int ApplyDebuffMultiplier(int baseDamage)
+    {
+        // Bu zone'da debuff var mı?
+        Zone[] allZones = FindObjectsOfType<Zone>();
+        
+        foreach (Zone zone in allZones)
+        {
+            // Aynı zone'da mı ve debuff aktif mi?
+            if (zone.zoneIndex == zoneIndex && zone.hasDebuff)
+            {
+                float multipliedDamage = baseDamage * zone.debuffMultiplier;
+                int finalDamage = Mathf.RoundToInt(multipliedDamage);
+                
+                Debug.Log($"💜 DEBUFF! {baseDamage} → {finalDamage} damage (x{zone.debuffMultiplier})");
+                
+                return finalDamage;
+            }
+        }
+        
+        return baseDamage; // Debuff yoksa normal damage
     }
 }

@@ -86,7 +86,9 @@ public class MenuManager : MonoBehaviour
             // SADECE KIRMIZI KART İLE BAŞLA! ✅
             Card.CardColor[] startingCards = new Card.CardColor[]
             {
-                Card.CardColor.Red  // Sadece turret!
+                Card.CardColor.Red,  // Sadece turret!
+                Card.CardColor.Purple,
+                Card.CardColor.Orange
             };
         
             cardManager.SetAvailableCards(startingCards);

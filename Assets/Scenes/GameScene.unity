@@ -1550,6 +1550,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isGameOver: 0
+  isGameStarted: 0
 --- !u!4 &229911917
 Transform:
   m_ObjectHideFlags: 0
@@ -2679,6 +2680,10 @@ MonoBehaviour:
   turretProjectilePrefab: {fileID: 2463895009292971754, guid: 9e27eea09c8dd9849abf1ed29f9db240, type: 3}
   hasLightningBuff: 0
   lightningProjectilePrefab: {fileID: 2767470188158559307, guid: b7640d09ffd40b94ba161acc726e24c4, type: 3}
+  hasPoisonBuff: 0
+  poisonDamagePerSecond: 10
+  hasDebuff: 0
+  debuffMultiplier: 1.5
   cardDuration: 30
 --- !u!1 &519420028
 GameObject:
@@ -2952,6 +2957,10 @@ MonoBehaviour:
   turretProjectilePrefab: {fileID: 2463895009292971754, guid: 9e27eea09c8dd9849abf1ed29f9db240, type: 3}
   hasLightningBuff: 0
   lightningProjectilePrefab: {fileID: 2767470188158559307, guid: b7640d09ffd40b94ba161acc726e24c4, type: 3}
+  hasPoisonBuff: 0
+  poisonDamagePerSecond: 10
+  hasDebuff: 0
+  debuffMultiplier: 1.5
   cardDuration: 30
 --- !u!212 &529134361
 SpriteRenderer:
@@ -5971,7 +5980,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.3, y: 1}
-  m_AnchoredPosition: {x: 5.0252686, y: 0}
+  m_AnchoredPosition: {x: 5.0374756, y: 0}
   m_SizeDelta: {x: -10, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &985653789
@@ -6344,7 +6353,7 @@ MonoBehaviour:
   waveConfigs:
   - waveNumber: 1
     totalEnemies: 30
-    spawnInterval: 2
+    spawnInterval: 1.2
     enemyConfigs:
     - enemyType: 0
       usePercentage: 1
@@ -6827,7 +6836,7 @@ MonoBehaviour:
   endDotSize: 0.05
   primaryProjectilePrefab: {fileID: 2072656189030990536, guid: fccadcb6d8b32c44886f88cf64c96606, type: 3}
   firePoint: {fileID: 349322449}
-  basePrimaryFireRate: 0.2
+  basePrimaryFireRate: 0.6
   projectileSpeed: 10
   basePrimaryDamage: 20
   ultiProjectilePrefab: {fileID: 5208435467210523430, guid: 669b4fd85c8deb94f933a5854f87429b, type: 3}
@@ -7368,6 +7377,10 @@ MonoBehaviour:
   turretProjectilePrefab: {fileID: 2463895009292971754, guid: 9e27eea09c8dd9849abf1ed29f9db240, type: 3}
   hasLightningBuff: 0
   lightningProjectilePrefab: {fileID: 2767470188158559307, guid: b7640d09ffd40b94ba161acc726e24c4, type: 3}
+  hasPoisonBuff: 0
+  poisonDamagePerSecond: 10
+  hasDebuff: 0
+  debuffMultiplier: 1.5
   cardDuration: 30
 --- !u!1 &1114026284
 GameObject:
@@ -10753,6 +10766,10 @@ MonoBehaviour:
   turretProjectilePrefab: {fileID: 2463895009292971754, guid: 9e27eea09c8dd9849abf1ed29f9db240, type: 3}
   hasLightningBuff: 0
   lightningProjectilePrefab: {fileID: 2767470188158559307, guid: b7640d09ffd40b94ba161acc726e24c4, type: 3}
+  hasPoisonBuff: 0
+  poisonDamagePerSecond: 10
+  hasDebuff: 0
+  debuffMultiplier: 1.5
   cardDuration: 30
 --- !u!212 &1660905738
 SpriteRenderer:
@@ -15833,6 +15850,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1731807363}
   m_CullTransparentMesh: 1
+--- !u!1 &1740499672
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1740499674}
+  - component: {fileID: 1740499673}
+  m_Layer: 0
+  m_Name: UltiBarUI_Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1740499673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740499672}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a63e0bdf39efc1e4f8fc9687a0bb8029, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  barWidth: 80
+  barHeight: 8
+  offset: {x: 0, y: -1.5, z: 0}
+  emptyColor: {r: 0.2, g: 0.2, b: 0.3, a: 0.8}
+  fillingColor: {r: 1, g: 0.9, b: 0.3, a: 1}
+  readyColor: {r: 0, g: 1, b: 0.3, a: 1}
+  enablePulse: 1
+  pulseSpeed: 5
+--- !u!4 &1740499674
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740499672}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.5435688, y: 0.7154282, z: -10.039867}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1747490834
 GameObject:
   m_ObjectHideFlags: 0
@@ -16235,6 +16304,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1790066286}
   m_CullTransparentMesh: 1
+--- !u!1 &1826254011
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1826254013}
+  - component: {fileID: 1826254012}
+  m_Layer: 0
+  m_Name: SimpleBossHealthBarManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1826254012
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826254011}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d00f3c08a566c2448e21e05dd0f5099, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  barWidth: 800
+  barHeight: 40
+  fullColor: {r: 0.9, g: 0.3, b: 1, a: 1}
+  emptyColor: {r: 0.3, g: 0.1, b: 0.4, a: 1}
+  glowColor: {r: 1, g: 0.9, b: 0.3, a: 1}
+  enablePulse: 1
+  pulseSpeed: 3
+  pulseIntensity: 0.2
+  enableScreenFlash: 1
+  screenFlashDuration: 0.2
+  breakThreshold: 1000
+--- !u!4 &1826254013
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1826254011}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -8.012084, y: 0.24814102, z: -9.996985}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1845751321
 GameObject:
   m_ObjectHideFlags: 0
@@ -17152,6 +17276,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   normalHitDuration: 0.05
   criticalHitDuration: 0.1
+  isHitstopped: 0
 --- !u!4 &1984034759
 Transform:
   m_ObjectHideFlags: 0
@@ -18052,3 +18177,5 @@ SceneRoots:
   - {fileID: 1863014187}
   - {fileID: 1481113451}
   - {fileID: 1984034759}
+  - {fileID: 1826254013}
+  - {fileID: 1740499674}
