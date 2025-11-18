@@ -5980,7 +5980,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.3, y: 1}
-  m_AnchoredPosition: {x: 5.039795, y: 0}
+  m_AnchoredPosition: {x: 5.046997, y: 0}
   m_SizeDelta: {x: -10, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &985653789
@@ -6411,7 +6411,7 @@ MonoBehaviour:
       usePercentage: 1
       spawnPercentage: 5
       exactCount: 0
-  - waveNumber: 3
+  - waveNumber: 4
     totalEnemies: 45
     spawnInterval: 1.6
     enemyConfigs:
@@ -6439,7 +6439,7 @@ MonoBehaviour:
       usePercentage: 1
       spawnPercentage: 3
       exactCount: 0
-  - waveNumber: 3
+  - waveNumber: 5
     totalEnemies: 50
     spawnInterval: 1.5
     enemyConfigs:
@@ -6467,6 +6467,46 @@ MonoBehaviour:
       usePercentage: 1
       spawnPercentage: 5
       exactCount: 0
+  - waveNumber: 6
+    totalEnemies: 50
+    spawnInterval: 1.5
+    enemyConfigs:
+    - enemyType: 0
+      usePercentage: 1
+      spawnPercentage: 20
+      exactCount: 0
+    - enemyType: 1
+      usePercentage: 1
+      spawnPercentage: 25
+      exactCount: 0
+    - enemyType: 2
+      usePercentage: 1
+      spawnPercentage: 20
+      exactCount: 0
+    - enemyType: 3
+      usePercentage: 1
+      spawnPercentage: 20
+      exactCount: 0
+    - enemyType: 4
+      usePercentage: 1
+      spawnPercentage: 10
+      exactCount: 0
+    - enemyType: 5
+      usePercentage: 1
+      spawnPercentage: 5
+      exactCount: 0
+  - waveNumber: 7
+    totalEnemies: 22
+    spawnInterval: 1.5
+    enemyConfigs:
+    - enemyType: 9
+      usePercentage: 0
+      spawnPercentage: 100
+      exactCount: 2
+    - enemyType: 0
+      usePercentage: 0
+      spawnPercentage: 100
+      exactCount: 20
   useWaveConfigs: 1
   enemyPrefab: {fileID: 9132433888214288841, guid: de0d8b966bd5c2f45b8e07457bf7f40b, type: 3}
   spawnPoints:
@@ -6483,8 +6523,8 @@ MonoBehaviour:
   isSpawning: 1
   hasStarted: 0
   autoStart: 0
-  testMode: 0
-  testWaveNumber: 5
+  testMode: 1
+  testWaveNumber: 7
 --- !u!1 &1027381055
 GameObject:
   m_ObjectHideFlags: 0
@@ -6851,6 +6891,8 @@ MonoBehaviour:
   readyColor: {r: 1, g: 0.5, b: 0, a: 1}
   shakeAmount: 0.05
   shakeDuration: 1
+  activeDebufferCount: 0
+  debuffMultiplier: 1
   showAutoTargetIndicator: 1
   autoTargetRange: 15
 --- !u!212 &1047941345
@@ -17133,6 +17175,7 @@ MonoBehaviour:
   currentLevelIndex: 0
   cardManager: {fileID: 985653790}
   countdownTime: 3
+  isCountdownActive: 0
 --- !u!4 &1966908467
 Transform:
   m_ObjectHideFlags: 0

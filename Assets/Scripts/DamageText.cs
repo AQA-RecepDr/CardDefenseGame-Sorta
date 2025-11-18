@@ -41,6 +41,9 @@ public class DamageText : MonoBehaviour
             // ÖNCE RENGİ SET ET!
             textMesh.color = color;
             startColor = color;
+            
+            // ✅ YEŞİL RENK İSE "+" İŞARETİ EKLE (HEAL)
+            bool isHealing = IsHealColor(color);
         
             // SONRA DAMAGE'İ SET ET!
             textMesh.text = damage.ToString();
@@ -56,6 +59,16 @@ public class DamageText : MonoBehaviour
             Debug.Log($"✅ DamageText initialized: {damage}, Color: {color}");
         }
     }
+    
+    // Heal rengi mi? (Yeşil)
+    bool IsHealColor(Color color)
+    {
+        // Yeşil renk (R:0.2, G:1, B:0.2)
+        return Mathf.Approximately(color.g, 1f) && 
+               color.r < 0.5f && 
+               color.b < 0.5f;
+    }
+
     
     // Kritik renk mi? (Parlak kırmızı)
     bool IsCriticalColor(Color color)

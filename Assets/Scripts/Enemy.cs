@@ -20,7 +20,10 @@ public class Enemy : MonoBehaviour
         Orange,  // Zigzag 
         Blue,    // 
         Red,     // Dash 
-        Boss     // BOSS 
+        Boss,     // BOSS 
+        Sniper,     // YENI! Uzaktan saldiri - Yesil koni
+        Debuffer,   // YENI! Atak hizi dusurucu - Bordo altigen
+        ZoneBuffer  // YENI! Elite - Kart etkisiz + can buff - Koyu gri daire
     }
     
     [Header("Coin Drop")]
@@ -37,7 +40,7 @@ public class Enemy : MonoBehaviour
     public float knockbackDuration = 0.1f; // 0.1 saniye geriye gider
     private Vector3 knockbackVelocity = Vector3.zero;
     
-    [Header("Hit Reaction - YENİ! 💥")]
+    [Header("Hit Reaction")]
     public bool enableHitReaction = true;
     private Vector3 originalScale;
     private bool isHitAnimating = false;
@@ -54,6 +57,29 @@ public class Enemy : MonoBehaviour
     private bool isDashing = false;
     private float dashDuration = 0.3f; // Dash sÃ¼resi
     private float dashTimeElapsed = 0f;
+    
+    [Header("Sniper - Uzaktan Saldiri")]
+    public bool useSniper = false;
+    public float sniperFireRate = 2f; // Ates hizi
+    private float sniperFireTimer = 0f;
+    public int sniperShotCount = 0; // Kac atis yapti
+    public int sniperMaxShots = 3; // Max atis sonra hareket
+    public GameObject sniperProjectilePrefab;
+    private Vector3 sniperPosition; // Bekledigi pozisyon
+    
+    [Header("Debuffer - Atak Hizi Dusurucu")]
+    public bool useDebuffer = false;
+    public float debuffRange = 4f; // Etki mesafesi
+    public float debuffSlowMultiplier = 0.2f; // Yavaslatma carpani
+    private bool isDebuffActive = false;
+    private Vector3 debufferStopPosition; // YENI - Duracagi pozisyon
+    private bool hasReachedPosition = false; // YENI - Pozisyona ulasti mi?
+    
+    [Header("Zone Buffer (Elite) - Kart Etkisiz + Can Buff")]
+    public bool useZoneBuffer = false;
+    public float zoneBuffHealRate = 5f; // Saniyede +HP
+    private float zoneBuffHealTimer = 0f;
+    private bool hasDisabledCard = false; // Karti devre disi birakti mi?
     
     private Vector3 originalSpawnPos; // Zigzag iÃ§in baÅŸlangÄ±Ã§ pozisyonu
     private float movementTime = 0f; // Zigzag iÃ§in zaman sayacÄ±
@@ -87,93 +113,112 @@ public class Enemy : MonoBehaviour
         originalScale = transform.localScale;
     }
 
-    void Update()
+   void Update()
+{
+    if (!isDestroyed)
     {
-        if (!isDestroyed)
-            // BOSS ise kendi AI hareket eder - normal hareketi atla
-            if (enemyType == EnemyType.Boss)
-            {
-                return;
-            }
+        // BOSS kontrolu
+        if (enemyType == EnemyType.Boss)
         {
-            // KNOCKBACK AKTÄ°FSE SADECE KNOCKBACK HAREKETÄ°! ðŸ’¥âœ…
-            if (isKnockbacked)
+            return;
+        }
+        
+        // DEBUFFER kontrolu - HAREKET KODUNDAN ONCE! ✅
+        if (enemyType == EnemyType.Debuffer)
+        {
+            DebufferUpdate();
+            return; // Normal hareket yapma!
+        }
+        
+        // SNIPER kontrolu - HAREKET KODUNDAN ONCE! ✅
+        if (enemyType == EnemyType.Sniper)
+        {
+            SniperUpdate();
+            return; // Normal hareket yapma!
+        }
+        
+        // ZONE BUFFER kontrolu - HAREKET KODUNDAN ONCE! ✅
+        if (enemyType == EnemyType.ZoneBuffer)
+        {
+            ZoneBufferUpdate();
+            return; // Normal hareket yapma!
+        }
+        
+        // Knockback kontrolu
+        if (isKnockbacked)
+        {
+            knockbackTimer -= Time.deltaTime;
+        
+            // Knockback hareketi
+            transform.position += knockbackVelocity * Time.deltaTime;
+        
+            // Knockback bitti mi?
+            if (knockbackTimer <= 0f)
             {
-                knockbackTimer -= Time.deltaTime;
-            
-                // Knockback hareketi
-                transform.position += knockbackVelocity * Time.deltaTime;
-            
-                // Knockback bitti mi?
-                if (knockbackTimer <= 0f)
-                {
-                    isKnockbacked = false;
-                    knockbackVelocity = Vector3.zero;
-                }
-            
-                return; // Normal hareket yapma!
-            }
-            
-            currentSpeed = CalculateSpeed();
-        
-            Vector3 playerPos = Vector3.zero;
-            Vector3 direction = (playerPos - transform.position).normalized;
-        
-            // NORMAL HAREKET
-            Vector3 movement = direction * currentSpeed * Time.deltaTime;
-        
-            // ZÄ°GZAG HAREKETÄ° EKLE - YENÄ°! âœ…
-            if (useZigzag)
-            {
-                movement += CalculateZigzagOffset();
-            }
-        
-            // DASH HAREKETÄ° EKLE - YENÄ°! (Sonra ekleyeceÄŸiz)
-            if (useDash)
-            {
-                movement += CalculateDashMovement();
-            }
-        
-            // Hareketi uygula
-            transform.position += movement;
-        
-            // Zaman sayacÄ±nÄ± artÄ±r (zigzag iÃ§in)
-            movementTime += Time.deltaTime;
-        
-            // EKRAN SINIRI GÃœVENLÄ°ÄžÄ° - YENÄ°! âœ…
-            if (Mathf.Abs(transform.position.x) > 15f || Mathf.Abs(transform.position.y) > 10f)
-            {
-                Debug.LogWarning($"âš ï¸ DÃ¼ÅŸman ekrandan Ã§Ä±ktÄ±! {gameObject.name} Pos: {transform.position}");
-            
-                EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
-                if (spawner != null)
-                {
-                    spawner.OnEnemyReachedPlayer(); // KayÄ±p olarak say
-                }
-            
-                Destroy(gameObject);
-                return;
+                isKnockbacked = false;
+                knockbackVelocity = Vector3.zero;
             }
         
-            float distanceToCenter = Vector3.Distance(transform.position, playerPos);
-            if (distanceToCenter < 1f)
+            return; // Normal hareket yapma!
+        }
+        
+        // NORMAL DUSMAN HAREKETI (White, Black, Yellow, Orange, Blue, Red)
+        currentSpeed = CalculateSpeed();
+    
+        Vector3 playerPos = Vector3.zero;
+        Vector3 direction = (playerPos - transform.position).normalized;
+    
+        // NORMAL HAREKET
+        Vector3 movement = direction * currentSpeed * Time.deltaTime;
+        
+        if (useZigzag)
+        {
+            movement += CalculateZigzagOffset();
+        }
+    
+        if (useDash)
+        {
+            movement += CalculateDashMovement();
+        }
+    
+        // Hareketi uygula
+        transform.position += movement;
+        
+        movementTime += Time.deltaTime;
+        
+        // Ekran sinirlari kontrolu
+        if (Mathf.Abs(transform.position.x) > 15f || Mathf.Abs(transform.position.y) > 10f)
+        {
+            EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
+            if (spawner != null)
             {
-                Player player = FindObjectOfType<Player>();
-                if (player != null)
-                {
-                    player.TakeDamage(damageToPlayer);
-                }
-            
-                EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
-                if (spawner != null)
-                {
-                    spawner.OnEnemyReachedPlayer();
-                }
-            
-                Destroy(gameObject);
+                spawner.OnEnemyReachedPlayer();
             }
+        
+            Destroy(gameObject);
+            return;
+        }
+    
+        // Player'a carpisma kontrolu
+        float distanceToCenter = Vector3.Distance(transform.position, playerPos);
+        if (distanceToCenter < 1f)
+        {
+            Player player = FindObjectOfType<Player>();
+            if (player != null)
+            {
+                player.TakeDamage(damageToPlayer);
+            }
+        
+            EnemySpawner spawner = FindObjectOfType<EnemySpawner>();
+            if (spawner != null)
+            {
+                spawner.OnEnemyReachedPlayer();
+            }
+        
+            Destroy(gameObject);
         }
     }
+}
     
     // Zigzag offset hesapla
     Vector3 CalculateZigzagOffset()
@@ -211,7 +256,7 @@ public class Enemy : MonoBehaviour
         return zigzagOffset;
     }
 
-    // Dash hareketi (kÄ±rmÄ±zÄ± dÃ¼ÅŸman iÃ§in)
+    
     Vector3 CalculateDashMovement()
 {
     // Dash timer gÃ¼ncelle
@@ -365,56 +410,102 @@ public class Enemy : MonoBehaviour
                 break;
             
             case EnemyType.Orange:
-                // ZIGZAG - YENÄ°! âœ…
                 maxHealth = 150;
                 currentHealth = 150;
-                baseSpeed = 2f; // 1x
+                baseSpeed = 2f;
                 damageToPlayer = 1;
                 useZigzag = true;
-                zigzagAmplitude = 3.5f; // Zigzag geniÅŸliÄŸi (ayarlanabilir)
-                zigzagFrequency = 4f; // Zigzag hÄ±zÄ± (ayarlanabilir)
+                zigzagAmplitude = 3.5f; 
+                zigzagFrequency = 4f;
                 transform.localScale = Vector3.one * 0.9f;
                 break;
         
             case EnemyType.Blue:
-                // ÃœÃ‡LÃœ GRUP - YENÄ°! âœ…
                 maxHealth = 50;
                 currentHealth = 50;
                 baseSpeed = 3f; // 1.5x
                 damageToPlayer = 1;
-                transform.localScale = Vector3.one * 0.7f; // KÃ¼Ã§Ã¼k
-                // Not: ÃœÃ§lÃ¼ spawn EnemySpawner'da yapÄ±lacak
+                transform.localScale = Vector3.one * 0.7f; 
                 break;
         
             case EnemyType.Red:
-                // DASH - YENÄ°! âœ…
                 maxHealth = 100;
                 currentHealth = 100;
                 baseSpeed = 2f; // 1x normal
                 damageToPlayer = 1;
                 useDash = true;
                 
-                // DASH AYARLARI
-                dashSpeed = 8f;         // Ã‡ok hÄ±zlÄ± dash!
-                dashCooldown = 0.8f;      // 2 saniyede bir dash
-                dashDuration = 0.3f;    // 0.3 saniye dash sÃ¼resi
-                dashTimer = 0.5f;         // Ä°lk dash 1 saniye sonra
+               dashSpeed = 8f;         
+                dashCooldown = 0.8f;      
+                dashDuration = 0.3f;    
+                dashTimer = 0.5f;         
                 
                 break;
             
             case EnemyType.Boss:
-                // BOSS - YENİ! 👾
-                maxHealth = 6000; // 6000 HP!
+                // BOSS 
+                maxHealth = 6000;
                 currentHealth = 6000;
-                baseSpeed = 0f; // Boss kendi hareketini kontrol eder
-                damageToPlayer = 3; // Çok tehlikeli!
-                transform.localScale = Vector3.one * 2.5f; // Büyük!
+                baseSpeed = 0f;
+                damageToPlayer = 3;
+                transform.localScale = Vector3.one * 2.5f;
                 
                 // Boss Controller ekle
                 BossController bossAI = gameObject.AddComponent<BossController>();
                 bossAI.enemyPrefab = FindObjectOfType<EnemySpawner>().enemyPrefab;
                 
                 Debug.Log("👾 BOSS INITIALIZED!");
+                break;
+            case EnemyType.Sniper:
+                // SNIPER - Uzaktan saldiri!
+                maxHealth = 150;
+                currentHealth = 150;
+                baseSpeed = 0f; // Hareket etmez, pozisyonda bekler
+                damageToPlayer = 1;
+                transform.localScale = Vector3.one * 0.9f;
+                
+                // Sniper ozellikleri
+                useSniper = true;
+                sniperFireRate = 2f; // 2 saniyede bir ates
+                sniperShotCount = 0;
+                sniperMaxShots = 3; // 3 atis sonra hareket
+                
+                Debug.Log("Sniper initialized!");
+                break;
+            
+            case EnemyType.Debuffer:
+                // DEBUFFER - Atak hizi dusurucu!
+                maxHealth = 170;
+                currentHealth = 170;
+                baseSpeed = 1.5f; // Yavas hareket
+                damageToPlayer = 1;
+                transform.localScale = Vector3.one * 0.85f;
+                
+                // Debuffer ozellikleri
+                useDebuffer = true;
+                debuffRange = 3f; // 3 birim mesafede etkili
+                debuffSlowMultiplier = 0.6f; // %80 yavas atak
+                
+                // SPAWN POZISYONU AYARLA - YENI!
+                Vector3 spawnCorner = GetZoneCornerPosition(zoneIndex);
+                transform.position = spawnCorner;
+                
+                Debug.Log("Debuffer initialized!");
+                break;
+            
+            case EnemyType.ZoneBuffer:
+                // ZONE BUFFER (ELITE) - Kart etkisiz + can buff!
+                maxHealth = 600;
+                currentHealth = 600;
+                baseSpeed = 0f; // Hareket etmez, kosede bekler
+                damageToPlayer = 2;
+                transform.localScale = Vector3.one * 1.5f; // Buyuk!
+                
+                // Zone Buffer ozellikleri
+                useZoneBuffer = true;
+                zoneBuffHealRate = 5f; // Saniyede +5 HP
+                
+                Debug.Log("ZoneBuffer (ELITE) initialized!");
                 break;
         }
     }
@@ -445,10 +536,18 @@ public class Enemy : MonoBehaviour
             case EnemyType.Boss:
                 spriteRenderer.color = new Color(1f, 0f, 1f); // PEMBE NEON
                 break;
+            case EnemyType.Sniper:
+                spriteRenderer.color = new Color(0.3f, 1f, 0.3f); // PARLAK YESIL NEON
+                break;
+            case EnemyType.Debuffer:
+                spriteRenderer.color = new Color(0.6f, 0f, 0.2f); // BORDO NEON
+                break;
+            case EnemyType.ZoneBuffer:
+                spriteRenderer.color = new Color(0.3f, 0.3f, 0.3f); // KOYU GRI
+                break;
         }
     }
-
-    // HÄ±zÄ± hesapla (buff kontrolÃ¼ ile)
+    
     float CalculateSpeed()
     {
         Zone[] allZones = FindObjectsOfType<Zone>();
@@ -844,8 +943,16 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
                 return 7; // 7 coin
             
             case EnemyType.Boss:
-                return 100; // 100 coin! 🎉
+                return 100; // 100 coin!
             
+            case EnemyType.Sniper:
+                return 12; // 12 coin (tehlikeli sniper)
+            
+            case EnemyType.Debuffer:
+                return 15; // 15 coin (yuksek deger)
+            
+            case EnemyType.ZoneBuffer:
+                return 50; // 50 coin! (ELITE)
             default:
                 return 5;
         }
@@ -898,7 +1005,7 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
         Debug.Log($"👾 Boss HP: {healthPercent:P0} - Scale: {targetScale:F2}");
     }
     
-    // BOSS EPIC DEATH SEQUENCE! 💥💥💥
+    // BOSS EPIC DEATH SEQUENCE!
     System.Collections.IEnumerator BossEpicDeathSequence()
     {
         Debug.Log("🎬 === BOSS EPIC DEATH BAŞLIYOR! ===");
@@ -1294,6 +1401,77 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
                 // TRAIL EFFECT EKLE! 💨
                 CreateTrailEffect();
                 break;
+            case EnemyType.Sniper:
+                // SNIPER - Parlak yesil koni/triangle
+                shapeRenderer.shapeType = EnemyShapeRenderer.ShapeType.Triangle;
+                shapeRenderer.size = 0.55f;
+                shapeRenderer.shapeColor = new Color(0.3f, 1f, 0.3f); // Parlak yesil
+                shapeRenderer.pulseSpeed = 2f;
+                shapeRenderer.glowIntensity = 2f; // Parlak glow
+                // ANIMATED CORE!
+                CreateAnimatedCore(
+                    EnemyAnimatedCore.CoreType.PulsingOrb,
+                    EnemyShapeRenderer.ShapeType.Circle,
+                    0.15f,
+                    new Color(0.5f, 1f, 0.5f), // Acik yesil
+                    0f, // Donmez
+                    3f // Orta hiz pulse
+                );
+                // Gradient ve glow
+                shapeRenderer.enableGradient = true;
+                shapeRenderer.enableGlow = true;
+                shapeRenderer.enablePulse = true;
+                
+                Debug.Log($"{enemyType} sekli olusturuldu: {shapeRenderer.shapeType}");
+                CreateTrailEffect();
+                break;
+            case EnemyType.Debuffer:
+                // DEBUFFER - Bordo 
+                shapeRenderer.shapeType = EnemyShapeRenderer.ShapeType.Hexagon;
+                shapeRenderer.size = 0.5f;
+                shapeRenderer.shapeColor = new Color(0.6f, 0f, 0.2f); // Bordo
+                shapeRenderer.pulseSpeed = 1.8f;
+                shapeRenderer.glowIntensity = 1.5f;
+                // ANIMATED CORE!
+                CreateAnimatedCore(
+                    EnemyAnimatedCore.CoreType.RotatingShape,
+                    EnemyShapeRenderer.ShapeType.Square,
+                    0.18f,
+                    new Color(0.8f, 0.2f, 0.4f), // Kirmizimsi
+                    100f // Orta donu
+                );
+                // Gradient ve glow
+                shapeRenderer.enableGradient = true;
+                shapeRenderer.enableGlow = true;
+                shapeRenderer.enablePulse = true;
+                
+                Debug.Log($"{enemyType} sekli olusturuldu: {shapeRenderer.shapeType}");
+                CreateTrailEffect();
+                break;
+                
+            case EnemyType.ZoneBuffer:
+                // ZONE BUFFER (ELITE) - Koyu gri buyuk daire
+                shapeRenderer.shapeType = EnemyShapeRenderer.ShapeType.Circle;
+                shapeRenderer.size = 0.8f; // BUYUK!
+                shapeRenderer.shapeColor = new Color(0.3f, 0.3f, 0.3f); // Koyu gri
+                shapeRenderer.pulseSpeed = 1f; // Yavas pulse
+                shapeRenderer.glowIntensity = 1.8f;
+                // ANIMATED CORE! (Elite core)
+                CreateAnimatedCore(
+                    EnemyAnimatedCore.CoreType.SpinningRing,
+                    EnemyShapeRenderer.ShapeType.Circle,
+                    0.35f, // Buyuk core
+                    new Color(0.5f, 0.5f, 0.5f), // Acik gri
+                    80f // Yavas donux
+                );
+                // Gradient ve glow
+                shapeRenderer.enableGradient = true;
+                shapeRenderer.enableGlow = true;
+                shapeRenderer.enablePulse = true;
+                
+                Debug.Log($"{enemyType} (ELITE) sekli olusturuldu: {shapeRenderer.shapeType}");
+                CreateTrailEffect();
+                break;
         }
         
         // Gradient ve glow her zaman aktif
@@ -1400,6 +1578,32 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
                 trailEffect.trailEndWidth = 0.1f;
                 trailEffect.glowIntensity = 2.5f; // MEGA PARLAK!
                 break;
+            case EnemyType.Sniper:
+                // Sniper - Ince, parlak yesil trail
+                trailEffect.trailColor = new Color(0.3f, 1f, 0.3f, 0.8f); // Parlak yesil
+                trailEffect.trailDuration = 0.25f; // Kisa trail (statik dusman)
+                trailEffect.trailStartWidth = 0.25f;
+                trailEffect.trailEndWidth = 0.05f;
+                trailEffect.glowIntensity = 2f; // Parlak!
+                break;
+                
+            case EnemyType.Debuffer:
+                // Debuffer - Karanlik, suren trail
+                trailEffect.trailColor = new Color(0.6f, 0f, 0.2f, 0.7f); // Bordo
+                trailEffect.trailDuration = 0.4f; // Orta trail
+                trailEffect.trailStartWidth = 0.3f;
+                trailEffect.trailEndWidth = 0.06f;
+                trailEffect.glowIntensity = 1.5f;
+                break;
+                
+            case EnemyType.ZoneBuffer:
+                // ZoneBuffer - Kalin, koyu gri trail
+                trailEffect.trailColor = new Color(0.3f, 0.3f, 0.3f, 0.9f); // Koyu gri
+                trailEffect.trailDuration = 0.3f; // Kisa (statik)
+                trailEffect.trailStartWidth = 0.45f; // Kalin (buyuk dusman)
+                trailEffect.trailEndWidth = 0.1f;
+                trailEffect.glowIntensity = 1.8f;
+                break;
         }
         
         // Her zaman additive blend (neon efekt)
@@ -1431,5 +1635,410 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
         }
         
         return baseDamage; // Debuff yoksa normal damage
+    }
+    // ========== YENI DUSMAN TIPLERI - OZEL FONKSIYONLAR ==========
+    
+    /// <summary>
+    /// SNIPER - Zone kosesinde bekleyip uzaktan ates eder
+    /// </summary>
+    void SniperUpdate()
+    {
+        // Ilk spawn'da pozisyon ayarla (zone kosesine git)
+        if (sniperPosition == Vector3.zero)
+        {
+            SetSniperPosition();
+        }
+        
+        // Pozisyonda bekle (hareket etme)
+        transform.position = sniperPosition;
+        
+        // Ates zamani
+        sniperFireTimer += Time.deltaTime;
+        
+        if (sniperFireTimer >= sniperFireRate)
+        {
+            sniperFireTimer = 0f;
+            SniperFire();
+            
+            sniperShotCount++;
+            
+            // 2-3 atis sonra pozisyon degistir
+            if (sniperShotCount >= sniperMaxShots)
+            {
+                sniperShotCount = 0;
+                ShiftSniperPosition(); // Yana kay
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Sniper pozisyonunu ayarla (zone kosesinde)
+    /// </summary>
+    void SetSniperPosition()
+    {
+        Vector3 zoneCorner = GetZoneCornerPosition(zoneIndex);
+        sniperPosition = zoneCorner;
+        transform.position = sniperPosition;
+        
+        Debug.Log($"Sniper pozisyon ayarlandi: {sniperPosition} (Zone {zoneIndex})");
+    }
+    
+    /// <summary>
+    /// Sniper pozisyonunu degistir (sag/sol)
+    /// </summary>
+    void ShiftSniperPosition()
+    {
+        // Rastgele sag veya sol tarafa kay
+        float shift = Random.Range(0, 2) == 0 ? -1.5f : 1.5f;
+        
+        // Zone yonune gore kaydirma ekseni
+        if (zoneIndex == 0 || zoneIndex == 2) // TOP/BOTTOM
+        {
+            sniperPosition += new Vector3(shift, 0, 0); // X ekseninde kay
+        }
+        else // LEFT/RIGHT
+        {
+            sniperPosition += new Vector3(0, shift, 0); // Y ekseninde kay
+        }
+        
+        // Ekran sinirlari icinde kal
+        sniperPosition.x = Mathf.Clamp(sniperPosition.x, -8f, 8f);
+        sniperPosition.y = Mathf.Clamp(sniperPosition.y, -5f, 5f);
+        
+        Debug.Log($"Sniper pozisyon degisti: {sniperPosition}");
+    }
+    
+    /// <summary>
+    /// Sniper ates et (player'a projectile)
+    /// </summary>
+    void SniperFire()
+    {
+        if (sniperProjectilePrefab == null)
+        {
+            Debug.LogWarning("Sniper projectile prefab yok!");
+            return;
+        }
+        
+        Vector3 playerPos = Vector3.zero;
+        Vector3 direction = (playerPos - transform.position).normalized;
+        
+        // Muzzle flash
+        if (HitEffectManager.Instance != null)
+        {
+            HitEffectManager.Instance.ShowMuzzleFlash(transform.position, direction, new Color(0.3f, 1f, 0.3f));
+        }
+        
+        // Projectile olustur (TurretProjectile kullanabiliriz)
+        GameObject projectile = Instantiate(sniperProjectilePrefab, transform.position, Quaternion.identity);
+        TurretProjectile projectileScript = projectile.GetComponent<TurretProjectile>();
+        
+        if (projectileScript != null)
+        {
+            // Player'i target al
+            Player player = FindObjectOfType<Player>();
+            if (player != null)
+            {
+                projectileScript.target = player.transform;
+                projectileScript.damage = 1; // Sniper hasar
+            }
+        }
+        
+        Debug.Log($"Sniper ates etti! Shot count: {sniperShotCount + 1}/{sniperMaxShots}");
+    }
+    
+ /// <summary>
+/// DEBUFFER - Player'a yaklasip belirli mesafede durup atak hizini dusurur
+/// </summary>
+void DebufferUpdate()
+{
+    Vector3 playerPos = Vector3.zero;
+    float currentDistanceToPlayer = Vector3.Distance(transform.position, playerPos);
+    
+    Debug.Log($"[DEBUFFER UPDATE] Mesafe: {currentDistanceToPlayer:F2}, HasReached: {hasReachedPosition}, IsActive: {isDebuffActive}");
+    
+    // FAZE 1: Hedef pozisyona gitme
+    if (!hasReachedPosition)
+    {
+        Debug.Log($"[DEBUFFER FAZE 1] Player'a yaklasiyor... Pos: {transform.position}, Target Range: {debuffRange}");
+        
+        // Player'a dogru yaklas, ama debuffRange mesafede dur
+        Vector3 directionToPlayer = (playerPos - transform.position).normalized;
+        
+        // Player ne kadar uzakta?
+        // ✅ DÜZELTME: debuffRange * 1.1 yerine sadece debuffRange kullan
+        if (currentDistanceToPlayer > debuffRange)
+        {
+            // Henuz yeterince yakin degil, yaklasmeya devam
+            transform.position += directionToPlayer * baseSpeed * Time.deltaTime;
+            Debug.Log($"[DEBUFFER] Yaklasmeya devam... Yeni Pos: {transform.position}");
+        }
+        else
+        {
+            // Yeterince yaklastik! Artik dur
+            hasReachedPosition = true;
+            debufferStopPosition = transform.position;
+            
+            Debug.Log($"✅✅✅ [DEBUFFER] POZISYONA ULASTI! Mesafe: {currentDistanceToPlayer:F2}");
+            
+            // Gorsel efekt goster (buyuk daire)
+            ShowDebuffCircle();
+            
+            // ✅ HEM POZISYONA ULAŞINCA HEM DEBUFF UYGULA!
+            ApplyDebuffToPlayer();
+            isDebuffActive = true;
+        }
+        
+        return; // Bu frame'de daha fazla bir sey yapma
+    }
+    
+    // FAZE 2: Pozisyonda sabit kal ve debuff uygula
+    Debug.Log($"[DEBUFFER FAZE 2] Pozisyonda! Mesafe: {currentDistanceToPlayer:F2}, Range: {debuffRange}");
+    
+    // ✅ DÜZELTME: Biraz daha geniş range kullan (debuffRange * 1.5)
+    if (currentDistanceToPlayer <= debuffRange * 1.5f)
+    {
+        Debug.Log($"[DEBUFFER] MESAFE ICINDE! {currentDistanceToPlayer:F2} <= {debuffRange * 1.5f}");
+        
+        // Mesafe icinde - debuff aktif et (zaten aktif olmalı ama kontrol edelim)
+        if (!isDebuffActive)
+        {
+            Debug.Log($"🔴🔴🔴 DEBUFF UYGULANACAK! Calling ApplyDebuffToPlayer()...");
+            ApplyDebuffToPlayer();
+            isDebuffActive = true;
+        }
+        else
+        {
+            Debug.Log($"[DEBUFFER] Debuff zaten aktif.");
+        }
+    }
+    else
+    {
+        Debug.Log($"[DEBUFFER] MESAFE DISINDA! {currentDistanceToPlayer:F2} > {debuffRange * 1.5f}");
+        
+        // Player uzaklasti - debuff kaldir
+        if (isDebuffActive)
+        {
+            RemoveDebuffFromPlayer();
+            isDebuffActive = false;
+            Debug.Log("🟢 DEBUFF KALDIRILDI!");
+        }
+        
+        // Player cok uzaklastiysa, yeniden yaklasma moduna gec
+        if (currentDistanceToPlayer > debuffRange * 3f)
+        {
+            hasReachedPosition = false;
+            Debug.Log("[DEBUFFER] Player cok uzaklasti, yeniden yaklasiyor...");
+        }
+    }
+    
+    // Pozisyonda statik kal
+    transform.position = debufferStopPosition;
+}
+
+    void ShowDebuffCircle()
+    {
+        Debug.Log($"🔴 [DEBUFFER] Debuff dairesi olusturuluyor! Range: {debuffRange}");
+    
+        // LineRenderer ile büyük kırmızı daire çiz
+        LineRenderer lineRenderer = gameObject.GetComponent<LineRenderer>();
+    
+        if (lineRenderer == null)
+        {
+            lineRenderer = gameObject.AddComponent<LineRenderer>();
+        }
+    
+        // LineRenderer ayarları
+        lineRenderer.positionCount = 60; // 60 nokta ile yumuşak daire
+        lineRenderer.loop = true; // Daire kapansın
+        lineRenderer.startWidth = 0.15f; // Daha kalın çizgi
+        lineRenderer.endWidth = 0.15f;
+        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        lineRenderer.startColor = new Color(1f, 0.2f, 0.2f, 0.8f); // Parlak kırmızı
+        lineRenderer.endColor = new Color(1f, 0.2f, 0.2f, 0.8f);
+        lineRenderer.sortingOrder = -1; // Düşmanın arkasında
+        lineRenderer.useWorldSpace = false; // Local space kullan
+    
+        // DAHA BÜYÜK DAİRE! (debuffRange * 1.5 = daha belirgin)
+        float visualRadius = debuffRange * 1.2f;
+    
+        // Daire noktalarını hesapla
+        float angleStep = 360f / 60f;
+    
+        for (int i = 0; i < 60; i++)
+        {
+            float angle = i * angleStep * Mathf.Deg2Rad;
+            float x = Mathf.Cos(angle) * visualRadius;
+            float y = Mathf.Sin(angle) * visualRadius;
+        
+            lineRenderer.SetPosition(i, new Vector3(x, y, 0));
+        }
+    
+        Debug.Log($"Büyük kırmızı debuff dairesi gösteriliyor! Radius: {visualRadius}");
+    }
+    
+    /// <summary>
+    /// Player'a debuff uygula (atak hizi dusurme)
+    /// </summary>
+    void ApplyDebuffToPlayer()
+    {
+        Debug.Log($"[ApplyDebuffToPlayer] CAGRILDI! Multiplier: {debuffSlowMultiplier}");
+    
+        WeaponManager weaponManager = FindObjectOfType<WeaponManager>();
+    
+        if (weaponManager == null)
+        {
+            Debug.LogError("❌ WeaponManager BULUNAMADI!");
+            return;
+        }
+    
+        Debug.Log($"[ApplyDebuffToPlayer] WeaponManager bulundu! AddDebuffer cagiriliyor...");
+    
+        // Debuffer sayisini artir
+        weaponManager.AddDebuffer(debuffSlowMultiplier);
+    
+        Debug.Log($"✅ Debuff uygulandi! Atak hizi: x{debuffSlowMultiplier}");
+    }
+    
+    /// <summary>
+    /// Player'dan debuff kaldir
+    /// </summary>
+    void RemoveDebuffFromPlayer()
+    {
+        WeaponManager weaponManager = FindObjectOfType<WeaponManager>();
+        if (weaponManager != null)
+        {
+            weaponManager.RemoveDebuffer();
+            Debug.Log("Debuff kaldirildi!");
+        }
+    }
+    
+    /// <summary>
+    /// ZONE BUFFER (ELITE) - Karti etkisiz yapar, zone'daki dusmanlarin canini artirir
+    /// </summary>
+    void ZoneBufferUpdate()
+    {
+        // Ilk spawn'da pozisyon ayarla (zone kosesinde statik kal)
+        if (sniperPosition == Vector3.zero)
+        {
+            Vector3 zoneCorner = GetZoneCornerPosition(zoneIndex);
+            sniperPosition = zoneCorner;
+            transform.position = sniperPosition;
+            
+            Debug.Log($"ZoneBuffer (ELITE) pozisyon ayarlandi: {sniperPosition} (Zone {zoneIndex})");
+        }
+        
+        // Pozisyonda statik kal (hareket etme)
+        transform.position = sniperPosition;
+        
+        // Karti etkisiz yap (bir kere)
+        if (!hasDisabledCard)
+        {
+            DisableZoneCard();
+            hasDisabledCard = true;
+        }
+        
+        // Zone'daki dusmanlaracanlari arttir (saniyede +5 HP)
+        zoneBuffHealTimer += Time.deltaTime;
+        
+        if (zoneBuffHealTimer >= 1f) // Her saniye
+        {
+            zoneBuffHealTimer = 0f;
+            BuffZoneEnemies();
+        }
+    }
+    
+    /// <summary>
+    /// Zone'daki karti etkisiz yap
+    /// </summary>
+    void DisableZoneCard()
+    {
+        Zone[] allZones = FindObjectsOfType<Zone>();
+        
+        foreach (Zone zone in allZones)
+        {
+            if (zone.zoneIndex == zoneIndex)
+            {
+                zone.RemoveBuff(); // Tum buff'lari kaldir
+                Debug.Log($"[ELITE] Zone {zoneIndex} karti etkisiz yapildi!");
+                break;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Zone'daki dusmanların canlarini arttir
+    /// </summary>
+    void BuffZoneEnemies()
+    {
+        Enemy[] allEnemies = FindObjectsOfType<Enemy>();
+    
+        int buffedCount = 0;
+        foreach (Enemy enemy in allEnemies)
+        {
+            // Ayni zone'da ve kendisi degil
+            if (enemy.zoneIndex == zoneIndex && enemy != this && !enemy.isDestroyed)
+            {
+                // +5 HP ver (max HP'yi gecmeden)
+                int healAmount = (int)zoneBuffHealRate;
+                enemy.currentHealth += healAmount;
+                enemy.currentHealth = Mathf.Min(enemy.currentHealth, enemy.maxHealth);
+            
+                // ✅ YEŞİL HEAL TEXT GÖSTER!
+                if (DamageTextManager.Instance != null)
+                {
+                    Color healColor = new Color(0.2f, 1f, 0.2f); // Parlak yeşil! 💚
+                    DamageTextManager.Instance.ShowDamage(
+                        healAmount, 
+                        enemy.transform.position, 
+                        healColor
+                    );
+                }
+            
+                buffedCount++;
+            }
+        }
+    
+        if (buffedCount > 0)
+        {
+            Debug.Log($"[ELITE] Zone {zoneIndex}: {buffedCount} dusman +{zoneBuffHealRate} HP aldi!");
+        }
+    }
+    
+    /// <summary>
+    /// Zone kosesinin pozisyonunu al
+    /// </summary>
+    Vector3 GetZoneCornerPosition(int zone)
+    {
+        // Zone'a gore kose pozisyonlari
+        switch (zone)
+        {
+            case 0: // TOP
+                return new Vector3(Random.Range(-6f, 6f), 7f, 0);
+            case 1: // RIGHT
+                return new Vector3(8f, Random.Range(-4f, 4f), 0);
+            case 2: // BOTTOM
+                return new Vector3(Random.Range(-6f, 6f), -6f, 0);
+            case 3: // LEFT
+                return new Vector3(-8f, Random.Range(-4f, 4f), 0);
+            default:
+                return new Vector3(0, 7f, 0);
+        }
+    }
+    
+    // ZoneBuffer yok edildiginde - debuff'u kaldir
+    void OnDestroy()
+    {
+        // Debuffer yok olurken debuff'u kaldir
+        if (useDebuffer && isDebuffActive)
+        {
+            RemoveDebuffFromPlayer();
+        }
+        
+        // LineRenderer varsa temizle
+        LineRenderer lineRenderer = GetComponent<LineRenderer>();
+        if (lineRenderer != null)
+        {
+            Destroy(lineRenderer);
+        }
     }
 }

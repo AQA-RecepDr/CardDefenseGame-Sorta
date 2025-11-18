@@ -26,7 +26,7 @@ public class LevelManager : MonoBehaviour
   
     [Header("Countdown")]
     public float countdownTime = 3f; // 3 saniye geri sayım
-    private bool isCountdownActive = false;
+    public bool isCountdownActive = false;
     private float countdownTimer = 0f;
     
     void Awake()

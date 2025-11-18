@@ -116,6 +116,16 @@ MonoBehaviour:
   useDash: 0
   dashSpeed: 8
   dashCooldown: 2
+  useSniper: 0
+  sniperFireRate: 2
+  sniperShotCount: 0
+  sniperMaxShots: 3
+  sniperProjectilePrefab: {fileID: 2463895009292971754, guid: 9e27eea09c8dd9849abf1ed29f9db240, type: 3}
+  useDebuffer: 0
+  debuffRange: 3
+  debuffSlowMultiplier: 0.5
+  useZoneBuffer: 0
+  zoneBuffHealRate: 5
   enemyType: 0
   isDestroyed: 0
 --- !u!58 &8528861464244599064

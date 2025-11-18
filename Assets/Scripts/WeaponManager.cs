@@ -48,6 +48,11 @@ public class WeaponManager : MonoBehaviour
     //[Header("Orbital Strike")]
     //public GameObject targetIndicatorPrefab; // Hedef göstergesi (opsiyonel)
     
+    [Header("Debuffer Sistemi")]
+    public int activeDebufferCount = 0; // Aktif debuffer sayisi
+    public float debuffMultiplier = 1f; // Atak hizi carpani (1 = normal, 0.5 = %50 yavas)
+    private List<float> debuffStack = new List<float>(); // Coklu debuffer stack
+    
     [Header("Auto-Target Ayarları")]
     public bool showAutoTargetIndicator = true; // Hedef göstergesi göster
     public float autoTargetRange = 15f; // Auto-target menzili
@@ -129,6 +134,12 @@ public class WeaponManager : MonoBehaviour
         if (GameManager.Instance != null && !GameManager.Instance.isGameStarted)
         {
             return; // Menüdeyken hiçbir şey yapma!
+        }
+        
+        // ✅ COUNTDOWN SIRASINDA INPUT ALMA! 🚫
+        if (LevelManager.Instance != null && LevelManager.Instance.isCountdownActive)
+        {
+            return; // Countdown sırasında ateş etme!
         }
         
         // SİLAHI MOUSE YÖNÜNE DÖNDÜR - YENİ!
@@ -352,21 +363,38 @@ public class WeaponManager : MonoBehaviour
     // Fire rate hesapla (upgrade'ler dahil)
     float CalculateFireRate()
     {
-        float fireRate = basePrimaryFireRate; // 0.2
+        float fireRate = basePrimaryFireRate; // 0.6
     
+        Debug.Log($"[CalculateFireRate] Base: {basePrimaryFireRate}, DebuffMultiplier: {debuffMultiplier}");
+    
+        // 🔴 DEBUFF VARSA ATEŞ HIZI ÇOK YAVAŞLAR!
+        if (debuffMultiplier < 1f)
+        {
+            // Debuff varsa fire rate ARTAR (cooldown uzar = daha yavaş ateş)
+            fireRate /= debuffMultiplier; 
+        
+            Debug.Log($"🐌🐌🐌 DEBUFF AKTIF! Fire Rate: {fireRate:F2}s (Normal: {basePrimaryFireRate}s, Multiplier: {debuffMultiplier})");
+        }
+        else
+        {
+            Debug.Log($"[CalculateFireRate] Debuff YOK, normal hiz");
+        }
+
         // Power Shot varsa ateş hızı AZALIR (daha yavaş)
         if (WeaponUpgradeManager.Instance != null && 
             WeaponUpgradeManager.Instance.hasPowerShot)
         {
-            fireRate *= 1.5f; // %50 daha yavaş (0.2 → 0.3)
+            fireRate *= 1.5f;
         }
-    
+
         // Rapid Fire upgrade'i varsa ateş hızı ARTAR (daha hızlı)
         if (WeaponUpgradeManager.Instance != null && 
             WeaponUpgradeManager.Instance.hasRapidFire)
         {
             fireRate *= WeaponUpgradeManager.Instance.powerShotFireRateMultiplier;
         }
+
+        Debug.Log($"[CalculateFireRate] Final FireRate: {fireRate:F2}s");
     
         return fireRate;
     }
@@ -727,4 +755,65 @@ public class WeaponManager : MonoBehaviour
     
         Debug.Log("⚡ Ulti cooldown sıfırlandı!");
     }
+    
+    /// <summary>
+    /// Debuffer ekle (Debuffer enemy aktif olunca)
+    /// </summary>
+    public void AddDebuffer(float slowMultiplier)
+    {
+        debuffStack.Add(slowMultiplier);
+        activeDebufferCount++;
+        CalculateDebuffMultiplier();
+        
+        Debug.Log($"Debuffer eklendi! Aktif: {activeDebufferCount}, Multiplier: {debuffMultiplier}");
+    }
+    
+    /// <summary>
+    /// Debuffer kaldir (Debuffer enemy yok olunca veya uzaklasinc)
+    /// </summary>
+    public void RemoveDebuffer()
+    {
+        if (debuffStack.Count > 0)
+        {
+            debuffStack.RemoveAt(0); // Ilk debuff'u kaldir
+            activeDebufferCount--;
+            CalculateDebuffMultiplier();
+            
+            Debug.Log($"Debuffer kaldirildi! Aktif: {activeDebufferCount}, Multiplier: {debuffMultiplier}");
+        }
+    }
+    
+    /// <summary>
+    /// Toplam debuff carpanini hesapla (coklu stack)
+    /// </summary>
+    void CalculateDebuffMultiplier()
+    {
+        if (debuffStack.Count == 0)
+        {
+            debuffMultiplier = 1f; // Normal hiz
+            return;
+        }
+        
+        // Ilk debuffer'in carpani
+        debuffMultiplier = debuffStack[0];
+        
+        // Ekstra debuffer'lar az etki eder (katlanarak)
+        for (int i = 1; i < debuffStack.Count; i++)
+        {
+            float extraDebuff = (1f - debuffStack[i]) * 0.3f; // %30 oraninda etkili
+            debuffMultiplier *= (1f - extraDebuff);
+        }
+        
+        // Minimum hiz: %25 (cok yavas olmasin)
+        debuffMultiplier = Mathf.Max(debuffMultiplier, 0.25f);
+    }
+    
+    /// <summary>
+    /// Gerçek fire rate'i al (debuff dahil)
+    /// </summary>
+    public float GetActualFireRate()
+    {
+        return basePrimaryFireRate / debuffMultiplier; // Debuff varsa daha yavas ates
+    }
+    
 }

@@ -94,14 +94,18 @@ public class TurretProjectile : MonoBehaviour
 
     void HitTarget()
     {
-        Debug.Log($"💥 TurretProjectile HitTarget çağrıldı! damage değişkeni: {damage}"); // YENİ!
-        // Düşmana turret hasarı ver (isTurret = true)
+        
         Enemy enemy = target.GetComponent<Enemy>();
         if (enemy != null)
         {
-            Debug.Log($"💥 Enemy.TakeDamage çağrılacak! Damage: {damage}, isTurret: true"); // YENİ!
             enemy.TakeDamage(damage, true); // Turret hasarı olduğunu belirt!
             ShowImpactRing(enemy.transform.position, new Color(1f, 0.5f, 0f));
+        }
+        // Player'a hasar ver (YENI!)
+        Player player = target.GetComponent<Player>();
+        if (player != null)
+        {
+            player.TakeDamage(damage); // Artık çalışıyor!
         }
     
         Destroy(gameObject);
