@@ -1,60 +1,56 @@
 using UnityEngine;
-using UnityEngine.UI;
 
 public class CardHotkey : MonoBehaviour
 {
     public int hotkeyNumber = 1; // 1, 2, 3, 4
-    private Text hotkeyText;
+    private TextMesh hotkeyText;
+    private GameObject textObj;
     
     void Start()
     {
-        CreateHotkeyText();
-    }
-    
-    void Update()
-    {
-        // OYUN BAŞLAMADIYSA KART KULLANMA! 🚫
-        if (GameManager.Instance != null && !GameManager.Instance.isGameStarted)
+        // Eğer zaten hotkey text varsa, iki tane oluşmasın
+        if (transform.Find("HotkeyText") != null)
         {
+            Debug.Log($"⚠️ Kart {hotkeyNumber} için hotkey zaten var, yeniden oluşturulmuyor.");
             return;
         }
+        
+        CreateHotkeyText();
     }
     
     void CreateHotkeyText()
     {
-        // Canvas'ı bul
-        Canvas canvas = GetComponentInParent<Canvas>();
-        if (canvas == null)
+        // TextMesh ile 3D text oluştur (world space için)
+        textObj = new GameObject("HotkeyText");
+        textObj.transform.SetParent(transform, false);
+        textObj.transform.localPosition = new Vector3(0, 0.6f, 0); // Kartın üstünde
+        textObj.transform.localScale = Vector3.one * 0.1f; // Küçült
+        
+        hotkeyText = textObj.AddComponent<TextMesh>();
+        hotkeyText.text = hotkeyNumber.ToString();
+        hotkeyText.fontSize = 50;
+        hotkeyText.color = Color.white;
+        hotkeyText.anchor = TextAnchor.MiddleCenter;
+        hotkeyText.alignment = TextAlignment.Center;
+        hotkeyText.fontStyle = FontStyle.Bold;
+        
+        // Renderer ayarları (görünür olması için)
+        MeshRenderer renderer = textObj.GetComponent<MeshRenderer>();
+        if (renderer != null)
         {
-            Debug.LogError("❌ Canvas bulunamadı!");
-            return;
+            renderer.sortingLayerName = "Default";
+            renderer.sortingOrder = 100; // En üstte görünsün
         }
         
-        // Text objesi oluştur
-        GameObject textObj = new GameObject("HotkeyText");
-        textObj.transform.SetParent(transform, false);
-        
-        hotkeyText = textObj.AddComponent<Text>();
-        hotkeyText.text = hotkeyNumber.ToString();
-        hotkeyText.font = Resources.GetBuiltinResource<Font>("Arial.ttf");
-        hotkeyText.fontSize = 32;
-        hotkeyText.fontStyle = FontStyle.Bold;
-        hotkeyText.alignment = TextAnchor.MiddleCenter;
-        hotkeyText.color = Color.white;
-        
-        // Glow efekti için outline (opsiyonel)
-        Outline outline = textObj.AddComponent<Outline>();
-        outline.effectColor = Color.black;
-        outline.effectDistance = new Vector2(2, -2);
-        
-        // Shadow ekle
-        Shadow shadow = textObj.AddComponent<Shadow>();
-        shadow.effectColor = new Color(0f, 0f, 0f, 0.8f);
-        shadow.effectDistance = new Vector2(3, -3);
-        
-        // Pozisyon (kartın üst ortasında)
-        RectTransform rectTransform = textObj.GetComponent<RectTransform>();
-        rectTransform.anchoredPosition = new Vector2(0, 30); // Üstte
-        rectTransform.sizeDelta = new Vector2(100, 50);
+        Debug.Log($"✅ Hotkey {hotkeyNumber} oluşturuldu! Pos: {textObj.transform.position}");
+    }
+    
+    void OnDestroy()
+    {
+        // Text objesini de yok et
+        if (textObj != null)
+        {
+            Destroy(textObj);
+        }
     }
 }

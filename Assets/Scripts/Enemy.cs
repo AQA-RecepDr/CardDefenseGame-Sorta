@@ -533,6 +533,9 @@ public class Enemy : MonoBehaviour
         
         // DEBUFF KONTROL - Player hasarÄ± da debuff'tan etkilensin!
         int actualDamage = damage;
+        
+        // DEBUFF KONTROL - Player hasarı da debuff'tan etkilensin!
+        actualDamage = ApplyDebuffMultiplier(actualDamage);  // Debuff eklendi!
     
         currentHealth -= actualDamage;
         

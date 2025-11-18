@@ -228,7 +228,7 @@ public class Zone : MonoBehaviour
                 neonHighlight.ResetToIdle();
                 
                 // Fill'i temizle
-                neonHighlight.SetFillColor(Color.white, 0.15f); // Normal fill'e dön
+                neonHighlight.SetFillColor(Color.white, 0f); // Normal fill'e dön
                 neonHighlight.enablePulse = false; // Pulse'u kapat
             }
             
@@ -403,6 +403,8 @@ public class Zone : MonoBehaviour
         if (neonHighlight != null)
         {
             neonHighlight.ResetToIdle();
+            neonHighlight.SetFillColor(Color.white, 0f); // TAMAMEN TRANSPARAN
+            neonHighlight.enablePulse = false; // Pulse'u kapat
         }
         //DestroyFormation();
     }

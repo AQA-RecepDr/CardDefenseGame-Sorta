@@ -40,7 +40,6 @@ public class CardManager : MonoBehaviour
     {
         Debug.Log($"🎴 Yeni kart ekleniyor: {cardColor}");
     
-        // NULL CHECK - YENİ!
         if (cardPrefab == null)
         {
             Debug.LogError("❌ cardPrefab NULL! Unity Editor'de CardManager'a Card Prefab atayın!");
@@ -152,8 +151,12 @@ public class CardManager : MonoBehaviour
     
         card.SetColor(color);
         
-        // HOTKEY EKLE - YENİ! 
-        CardHotkey hotkey = cardObj.AddComponent<CardHotkey>();
+        // HOTKEY EKLE - YENI! (Eger yoksa)
+        CardHotkey hotkey = cardObj.GetComponent<CardHotkey>();
+        if (hotkey == null)
+        {
+            hotkey = cardObj.AddComponent<CardHotkey>();
+        }
         hotkey.hotkeyNumber = index + 1; // 1, 2, 3, 4
     
         // YAN YANA DİZİLİM - YENİ!
