@@ -78,6 +78,14 @@ public class EnemySpawner : MonoBehaviour
            SpawnBoss();
            return; // Normal wave spawn yapma!
        }
+       
+       // WAVE 10 = FINAL BOSS WAVE! ✅ BUNU EKLE
+       if (currentWave == 10)
+       {
+           Debug.Log("💀 === FINAL BOSS WAVE! ===" );
+           SpawnFinalBoss();
+           return;
+       }
     
        isSpawning = true;
     
@@ -449,5 +457,59 @@ void SpawnBoss()
     }
     
     Debug.Log("👾 BOSS WAVE BAŞLADI! Oyuncu hazır olsun!");
+}
+
+public void SpawnSpecificEnemy(Enemy.EnemyType type)
+{
+    // Random spawn point (4 köşeden biri)
+    int randomZone = Random.Range(0, spawnPoints.Length);
+    Vector3 spawnPos = GetRandomSpawnPosition(spawnPoints[randomZone].position, randomZone);
+    
+    GameObject enemyObj = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+    Enemy enemy = enemyObj.GetComponent<Enemy>();
+    
+    if (enemy != null)
+    {
+        enemy.enemyType = type;
+        enemy.zoneIndex = randomZone;
+        enemy.SetupEnemyType(); // ✅ Doğru method ismi
+        enemy.gameObject.name = $"BossMinion_{type}";
+    }
+}
+
+// FINAL BOSS SPAWN (Level 10)
+void SpawnFinalBoss()
+{
+    Debug.Log("💀 FINAL BOSS SPAWN BAŞLIYOR!");
+    
+    // Final Boss için özel ayarlar
+    enemiesPerWave = 1;
+    enemiesSpawned = 1;
+    
+    // Merkez pozisyon
+    int bossZone = Random.Range(0, spawnPoints.Length);
+    Vector3 finalBossSpawnPos = spawnPoints[bossZone].position;
+    
+    // Final Boss spawn!
+    GameObject finalBossObj = Instantiate(enemyPrefab, finalBossSpawnPos, Quaternion.identity);
+    Enemy finalBoss = finalBossObj.GetComponent<Enemy>();
+    
+    if (finalBoss != null)
+    {
+        finalBoss.enemyType = Enemy.EnemyType.FinalBoss;
+        finalBoss.zoneIndex = 0;
+        finalBoss.gameObject.name = "FINALBOSS_TheDestroyer";
+        
+        Debug.Log($"💀 FINAL BOSS SPAWNED! Pos: {finalBossSpawnPos}");
+    }
+    
+    // UI güncelle
+    if (UIManager.Instance != null)
+    {
+        UIManager.Instance.UpdateWaveNumber(currentWave);
+        UIManager.Instance.UpdateEnemyCount(0, 1, 1);
+    }
+    
+    Debug.Log("💀 FINAL BOSS WAVE BAŞLADI!");
 }
 }

@@ -21,9 +21,10 @@ public class Enemy : MonoBehaviour
         Blue,    // 
         Red,     // Dash 
         Boss,     // BOSS 
-        Sniper,     // YENI! Uzaktan saldiri - Yesil koni
-        Debuffer,   // YENI! Atak hizi dusurucu - Bordo altigen
-        ZoneBuffer  // YENI! Elite - Kart etkisiz + can buff - Koyu gri daire
+        Sniper,     // Uzaktan saldiri - Yesil koni
+        Debuffer,   //  Atak hizi dusurucu - Bordo altigen
+        ZoneBuffer,  // Elite - Kart etkisiz + can buff - Koyu gri daire
+        FinalBoss // Final Boss (Level 10) - Kazik sistemi
     }
     
     [Header("Coin Drop")]
@@ -118,7 +119,7 @@ public class Enemy : MonoBehaviour
     if (!isDestroyed)
     {
         // BOSS kontrolu
-        if (enemyType == EnemyType.Boss)
+        if (enemyType == EnemyType.Boss || enemyType == EnemyType.FinalBoss)
         {
             return;
         }
@@ -382,7 +383,7 @@ public class Enemy : MonoBehaviour
 }
 
     // Düşman tipine göre özellikler
-    void SetupEnemyType()
+    public void SetupEnemyType()
     {
         switch (enemyType)
         {
@@ -456,6 +457,7 @@ public class Enemy : MonoBehaviour
                 
                 Debug.Log("👾 BOSS INITIALIZED!");
                 break;
+            
             case EnemyType.Sniper:
                 // SNIPER - Uzaktan saldiri!
                 maxHealth = 150;
@@ -507,6 +509,28 @@ public class Enemy : MonoBehaviour
                 
                 Debug.Log("ZoneBuffer (ELITE) initialized!");
                 break;
+            
+            case EnemyType.FinalBoss:
+                // FINAL BOSS (Level 10)
+                maxHealth = 1000;
+                currentHealth = 1000;
+                baseSpeed = 0f; // Hareket etmez
+                damageToPlayer = 5;
+                transform.localScale = Vector3.one * 3f; // Çok büyük!
+    
+                // ✅ Collider'ı kapat veya trigger yap (player'a çarpmasın)
+                CircleCollider2D col = GetComponent<CircleCollider2D>();
+                if (col != null)
+                {
+                    col.isTrigger = true; // Player'a hasar vermez
+                }
+    
+                // FinalBossController ekle
+                FinalBossController finalBossAI = gameObject.AddComponent<FinalBossController>();
+                //finalBossAI.enemyPrefab = FindObjectOfType<EnemySpawner>().enemyPrefab;
+    
+                Debug.Log("💀 FINAL BOSS INITIALIZED!");
+                break;
         }
     }
 
@@ -545,6 +569,9 @@ public class Enemy : MonoBehaviour
             case EnemyType.ZoneBuffer:
                 spriteRenderer.color = new Color(0.3f, 0.3f, 0.3f); // KOYU GRI
                 break;
+            case EnemyType.FinalBoss:
+                spriteRenderer.color = new Color(1f, 0.2f, 0.2f); // KIRMIZI NEON (tehlikeli!)
+                break;
         }
     }
     
@@ -571,6 +598,13 @@ public class Enemy : MonoBehaviour
 
     public void TakeDamage(int damage, bool isTurret = false)
     {
+        
+        // ✅ Öldüyse hasar alma
+        if (isDestroyed)
+        {
+            return;
+        }
+        
         int actualDamage = damage;
     
         // DEBUFF KONTROL - Turuncu kart varsa %50 fazla hasar!
@@ -826,14 +860,21 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
     
         isDestroyed = true;
         
-       // BOSS öldü mü? Özel ödül ve KAZANMA!
-        if (enemyType == EnemyType.Boss)
+        // BOSS öldü mü? Özel ödül ve KAZANMA!
+        if (enemyType == EnemyType.Boss || enemyType == EnemyType.FinalBoss)
         {
-            Debug.Log("💾 === BOSS ÖLDÜRÜLDÜ! EPIC SEQUENCE BAŞLIYOR! ===");
-            
+            if (enemyType == EnemyType.Boss)
+            {
+                Debug.Log("💾 === BOSS ÖLDÜRÜLDÜ! EPIC SEQUENCE BAŞLIYOR! ===");
+            }
+            else if (enemyType == EnemyType.FinalBoss)
+            {
+                Debug.Log("💀 === FINAL BOSS ÖLDÜRÜLDÜ! EPIC SEQUENCE BAŞLIYOR! ===");
+            }
+    
             SpawnCoins();
-            
-            // BOSS EPIC DEATH COROUTINE! 💥
+    
+            // BOSS EPIC DEATH COROUTINE!
             StartCoroutine(BossEpicDeathSequence());
 
             return;
@@ -953,6 +994,9 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
             
             case EnemyType.ZoneBuffer:
                 return 50; // 50 coin! (ELITE)
+            
+            case EnemyType.FinalBoss:
+                return 200; // 200 coin! (epic!)
             default:
                 return 5;
         }
@@ -1009,6 +1053,46 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
     System.Collections.IEnumerator BossEpicDeathSequence()
     {
         Debug.Log("🎬 === BOSS EPIC DEATH BAŞLIYOR! ===");
+        
+        // ✅ ÖNCE BOSS CONTROLLER'I DURDUR! (FinalBoss için)
+        if (enemyType == EnemyType.FinalBoss)
+        {
+            FinalBossController fbController = GetComponent<FinalBossController>();
+            if (fbController != null)
+            {
+                fbController.StopBoss(); // Bu methodu ekleyeceğiz
+            }
+        }
+        // BossController için de durdur
+        else if (enemyType == EnemyType.Boss)
+        {
+            BossController bossController = GetComponent<BossController>();
+            if (bossController != null)
+            {
+                // Boss controller zaten kendi işini yapıyor
+            }
+        }
+    
+        // ✅ BOSS'U GÖRÜNMEZ YAP (şekil renderer'ı kapat)
+        EnemyShapeRenderer shapeRenderer = GetComponent<EnemyShapeRenderer>();
+        if (shapeRenderer != null)
+        {
+            shapeRenderer.enabled = false; // Boss görünmez olur
+        }
+        
+        // ✅ CORE'U GİZLE
+        EnemyAnimatedCore core = GetComponentInChildren<EnemyAnimatedCore>();
+        if (core != null)
+        {
+            core.enabled = false;
+        }
+    
+        // ✅ TRAIL'İ GİZLE
+        EnemyTrailEffect trail = GetComponent<EnemyTrailEffect>();
+        if (trail != null)
+        {
+            trail.enabled = false;
+        }
         
         // 1. BOSS ÖLÜM SESİ! 💀
         if (SoundManager.Instance != null)
@@ -1472,6 +1556,33 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
                 Debug.Log($"{enemyType} (ELITE) sekli olusturuldu: {shapeRenderer.shapeType}");
                 CreateTrailEffect();
                 break;
+            
+            case EnemyType.FinalBoss:
+                // FINAL BOSS - Dev kırmızı yıldız (tehlike!)
+                shapeRenderer.shapeType = EnemyShapeRenderer.ShapeType.Star;
+                shapeRenderer.size = 1.2f; // ÇOK BÜYÜK!
+                shapeRenderer.shapeColor = new Color(1f, 0.15f, 0.15f); // Koyu kırmızı
+                shapeRenderer.pulseSpeed = 2f;
+                shapeRenderer.glowIntensity = 3f; // MEGA GLOW
+    
+                // ANIMATED CORE! Epic boss core
+                CreateAnimatedCore(
+                    EnemyAnimatedCore.CoreType.RotatingShape,
+                    EnemyShapeRenderer.ShapeType.Hexagon,
+                    0.5f, // Çok büyük core
+                    new Color(1f, 0.3f, 0.3f), // Kırmızı
+                    200f, // Çok hızlı dönüş
+                    3f // Güçlü pulse
+                );
+    
+                // Gradient ve glow
+                shapeRenderer.enableGradient = true;
+                shapeRenderer.enableGlow = true;
+                shapeRenderer.enablePulse = true;
+    
+                Debug.Log($"💀 {enemyType} (FINAL BOSS) şekli oluşturuldu!");
+                CreateTrailEffect();
+                break;
         }
         
         // Gradient ve glow her zaman aktif
@@ -1604,6 +1715,16 @@ IEnumerator HitReactionAnimation(Vector3 hitDirection)
                 trailEffect.trailEndWidth = 0.1f;
                 trailEffect.glowIntensity = 1.8f;
                 break;
+            
+            case EnemyType.FinalBoss:
+                // Final boss - epic trail
+                trailEffect.trailColor = new Color(1f, 0.2f, 0.2f, 0.9f); // Kırmızı
+                trailEffect.trailDuration = 0.8f; // Uzun trail
+                trailEffect.trailStartWidth = 0.8f; // Çok kalın
+                trailEffect.trailEndWidth = 0.1f;
+                trailEffect.glowIntensity = 3f; // Maximum glow!
+                break;
+            
         }
         
         // Her zaman additive blend (neon efekt)

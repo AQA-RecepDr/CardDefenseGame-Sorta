@@ -5980,7 +5980,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0.3, y: 1}
-  m_AnchoredPosition: {x: 5.046997, y: 0}
+  m_AnchoredPosition: {x: 5.051758, y: 0}
   m_SizeDelta: {x: -10, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &985653789
@@ -6496,17 +6496,13 @@ MonoBehaviour:
       spawnPercentage: 5
       exactCount: 0
   - waveNumber: 7
-    totalEnemies: 22
+    totalEnemies: 1
     spawnInterval: 1.5
     enemyConfigs:
-    - enemyType: 9
+    - enemyType: 10
       usePercentage: 0
       spawnPercentage: 100
-      exactCount: 2
-    - enemyType: 0
-      usePercentage: 0
-      spawnPercentage: 100
-      exactCount: 20
+      exactCount: 1
   useWaveConfigs: 1
   enemyPrefab: {fileID: 9132433888214288841, guid: de0d8b966bd5c2f45b8e07457bf7f40b, type: 3}
   spawnPoints:
@@ -6524,7 +6520,7 @@ MonoBehaviour:
   hasStarted: 0
   autoStart: 0
   testMode: 1
-  testWaveNumber: 7
+  testWaveNumber: 10
 --- !u!1 &1027381055
 GameObject:
   m_ObjectHideFlags: 0
